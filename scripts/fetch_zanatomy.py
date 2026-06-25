@@ -36,6 +36,30 @@ SYSTEMS = {  # FBX stem on the repo
 }
 
 REGIONS = {
+    "upper-body": (
+        # arm neurovascular + ALL upper-body musculoskeletal, so the scene shows a
+        # recognizable torso/shoulder/neck for orientation (not a disembodied arm).
+        r"humer|radius|ulna|clavicle|scapula|carpal|metacarp|phalan|deltoid|biceps|"
+        r"triceps|brachial|brachii|brachialis|coracobrach|pronator|supinator|flexor|"
+        r"extensor|anconeus|palmaris|brachioradialis|"
+        r"median nerve|ulnar nerve|radial nerve|musculocut|axillary nerve|brachial plexus|"
+        r"antebrachial cutaneous|interosseous nerve|cord of brachial|trunk of brachial|"
+        r"suprascapular|axillary artery|brachial artery|radial artery|ulnar artery|"
+        r"subclavian|circumflex humeral|basilic|cephalic|axillary vein|brachial vein|"
+        # torso + neck musculoskeletal (body contour / landmarks)
+        r"pectoralis|intercostal|\brib\b|sternum|costal|manubrium|xiphoid|"
+        r"thoracic vertebra|cervical vertebra|rectus abdominis|oblique|transversus abdomin|"
+        r"sternocleidomastoid|scalene|scalenus|trapezius|splenius|erector|spinalis|"
+        r"longissimus|iliocostalis|semispinalis|multifidus|levator scapulae|serratus|"
+        r"latissimus|rhomboid|teres|supraspinatus|infraspinatus|subscapularis|subclavius|"
+        r"omohyoid|sternohyoid|sternothyroid|thyrohyoid|platysma|digastric|mylohyoid|"
+        r"longus colli|longus capitis|mandible|skull|cranium|occipital bone|temporal bone",
+        r"foot|toe|hallu|thigh|femor|tibia|peroneal|fibular|sural|plantar|saphen|poplit|"
+        r"gluteal|brain|cerebr|cerebell|pituitary|lung|heart|spleen|liver|kidney|stomach|"
+        r"pancreas|bladder|intestin|gastric|hepatic|renal|mesenteric|coronary|esophag|"
+        r"trache|bronch|diaphragm|pelvi|iliac|lumbar|sacr|psoas|knee|ankle|"
+        r"digitorum longus|soleus|gastrocnem|tibialis|calcane|tongue|pharyn|laryn|nasal|orbit",
+    ),
     "upper-limb": (
         r"humer|radius|ulna|clavicle|scapula|carpal|metacarp|phalan|deltoid|biceps|"
         r"triceps|brachial|brachii|brachialis|coracobrach|pectoral|latissimus|teres|"

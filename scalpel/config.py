@@ -130,6 +130,7 @@ class SynthCfg:
     zoom_min: float = 0.30  # close framing so region+context fill the frame
     zoom_max: float = 0.42
     muscle_drop_max: float = 0.7  # max fraction of muscle layers dropped (dissection depth)
+    tissue_fill: bool = True  # fill background+gaps with fat/fascia (continuous tissue field)
 
 
 # --------------------------------------------------------------------------- #
