@@ -3,8 +3,7 @@
 **S**ynthetic-to-real **C**adaveric **A**natomy **L**ocalization via
 **P**oint-conditioned **E**xpert **L**earning.
 
-A point-conditioned, scene-graph reasoning model for gross-anatomy spot exams
-(*땡시*). SCALPEL estimates `p(y | I, q)` — the structure `y` under a pin at pixel
+A point-conditioned, scene-graph reasoning model for gross-anatomy spot exams. SCALPEL estimates `p(y | I, q)` — the structure `y` under a pin at pixel
 `q` in image `I` — as a **Product of Experts** over:
 
 - an **appearance expert** — frozen DINOv2 → point-conditioned pooling →
@@ -12,7 +11,8 @@ A point-conditioned, scene-graph reasoning model for gross-anatomy spot exams
 - a **relational expert** — patch segmentation → typed scene graph → R-GCN,
 
 then calibrates the fused distribution with temperature scaling and **abstains**
-when unsure. The full design rationale lives in [`HANDOUT.md`](HANDOUT.md).
+when unsure. The full design rationale lives in the project handout (`HANDOUT.md`),
+kept local to the working tree and intentionally not version-controlled.
 
 ## Status — milestone M0 ✅
 
