@@ -23,8 +23,6 @@ from scipy import ndimage as ndi
 
 from .config import SynthCfg
 
-FOV_DEG = 60.0  # vertical field of view (degrees) for the offscreen camera
-
 
 # --------------------------------------------------------------------------- #
 # Label <-> RGB codec (24-bit)                                                #
@@ -112,7 +110,7 @@ class DomainRandomizer:
             oh = max(1, int(H * np.sqrt(frac)))
             ox = int(self.rng.integers(0, max(1, W - ow)))
             oy = int(self.rng.integers(0, max(1, H - oh)))
-            shade = self.rng.uniform(0.0, 1.0, size=(1, 1, out.shape[2]))
+            shade = self.rng.uniform(0.0, 0.35, size=(1, 1, out.shape[2]))  # dark (shadow/instrument)
             out[oy : oy + oh, ox : ox + ow, :] = shade
 
         return np.clip(out, 0.0, 1.0)
@@ -214,80 +212,107 @@ class SyntheticRenderer:
             raise RuntimeError(f"no labelled meshes found under {self.mesh_dir!r}")
         return self._meshes
 
-    def _random_camera(self, renderer, rng):
-        """Set a randomized camera; return ``(center, eye, up)`` to reuse for pass 2."""
-        bounds = renderer.scene.bounding_box
-        center = bounds.get_center()
-        extent = float(np.linalg.norm(bounds.get_extent()))
-        az = float(rng.uniform(0, 2 * np.pi))
-        el = float(rng.uniform(-np.pi / 4, np.pi / 4))
-        radius = extent * float(rng.uniform(1.2, 2.0))
-        eye = center + radius * np.array(
-            [np.cos(el) * np.cos(az), np.sin(el), np.cos(el) * np.sin(az)]
+    @staticmethod
+    def _distinct_colors(n: int) -> np.ndarray:
+        """``n`` bright, well-separated RGB colours for the ID pass (decode-robust)."""
+        import colorsys
+        return np.array(
+            [colorsys.hsv_to_rgb((i / max(1, n)) % 1.0, 0.92, 0.95) for i in range(n)]
         )
-        # camera roll via an up-vector tilt (handout's xi includes camera roll)
-        roll = np.deg2rad(
-            float(rng.uniform(-self.cfg.camera_roll_deg, self.cfg.camera_roll_deg))
-        )
-        up = np.array([np.sin(roll), np.cos(roll), 0.0])
-        # setup_camera sets BOTH projection (fov) and view; look_at alone leaves
-        # the projection uninitialised and renders an empty image.
-        renderer.setup_camera(FOV_DEG, center, eye, up)
-        return center, eye, up
 
     @staticmethod
-    def _disable_aa(renderer) -> None:
-        """Disable post-processing + FXAA + MSAA so ID colours decode cleanly (§8.2).
-
-        Post-processing also applies tone-mapping that would shift the flat ID
-        colours; turning it off is what keeps the label codec reversible.
-        Guarded because the exact View API varies across Open3D versions.
-        """
-        try:
-            view = renderer.scene.view
-            view.set_post_processing(False)
-            view.set_antialiasing(False)
-            view.set_sample_count(1)
-        except Exception:
-            pass
+    def _fit(arr: np.ndarray, S: int, nearest: bool) -> np.ndarray:
+        """Resize a capture to ``(S, S)`` (macOS Retina backing buffers are 2x)."""
+        if arr.shape[0] == S and arr.shape[1] == S:
+            return arr
+        from PIL import Image
+        if nearest:
+            im = Image.fromarray(arr.astype(np.uint8)).resize((S, S), Image.NEAREST)
+            return np.asarray(im)
+        im = Image.fromarray((np.clip(arr, 0, 1) * 255).astype(np.uint8))
+        return np.asarray(im.resize((S, S), Image.BILINEAR)).astype(np.float64) / 255.0
 
     def render_pair(self, dr: DomainRandomizer, rng: np.random.Generator | None = None):
-        """Render one ``(rgb float[0,1] HxWx3, idmap int HxW)`` pair."""
+        """Render one ``(rgb float[0,1] HxWx3, idmap int HxW)`` pair.
+
+        Uses Open3D's legacy ``Visualizer`` (native GL window + screen capture),
+        not the Filament ``OffscreenRenderer`` -- the latter fails on macOS with
+        "EGL Headless is not supported". A window briefly appears per render
+        (``SynthCfg.window_visible``).
+
+        The ID pass paints each structure a distinct bright colour and decodes by
+        nearest-colour match, which is robust to the GL pipeline's gamma/sRGB and
+        edge anti-aliasing (the §8.2 concern) without depending on an exact
+        24-bit round-trip.
+        """
         o3d = self._ensure_open3d()
         rng = rng or np.random.default_rng()
         meshes = self._load_meshes()
         S = self.cfg.image_size
-        rendering = o3d.visualization.rendering
-        renderer = rendering.OffscreenRenderer(S, S)
 
-        # ----- pass 1: lit RGB with randomized lighting + per-structure colour
-        renderer.scene.set_background([0, 0, 0, 1])
-        intensity = dr.sample_light()
-        renderer.scene.scene.set_sun_light(
-            [0.3, -0.7, -0.6], [1.0, 1.0, 1.0], 75000 * intensity
-        )
-        renderer.scene.scene.enable_sun_light(True)
-        for label, mesh in meshes:
-            mat = rendering.MaterialRecord()
-            mat.shader = "defaultLit"
-            base = dr.perturb_color([0.8, 0.55, 0.5])  # fleshy base, jittered
-            mat.base_color = [*base, 1.0]
-            renderer.scene.add_geometry(f"rgb_{label}", mesh, mat)
-        cam = self._random_camera(renderer, rng)        # sample the view ONCE
-        rgb = np.asarray(renderer.render_to_image(), dtype=np.float64) / 255.0
+        vis = o3d.visualization.Visualizer()
+        vis.create_window(width=S, height=S, visible=self.cfg.window_visible)
+        try:
+            # normalized copies (origin-centred, unit-scaled) so framing is reliable
+            # regardless of the meshes' world coordinates (BodyParts3D is full-body).
+            geoms = [(label, o3d.geometry.TriangleMesh(mesh)) for label, mesh in meshes]
+            allpts = np.vstack([np.asarray(g.vertices) for _, g in geoms])
+            center = allpts.mean(axis=0)
+            scale = 1.0 / (float(np.linalg.norm(allpts.max(0) - allpts.min(0))) + 1e-9)
+            for _label, g in geoms:
+                g.translate(-center)
+                g.scale(scale, center=(0.0, 0.0, 0.0))
+                g.compute_vertex_normals()
+                vis.add_geometry(g)
+            opt = vis.get_render_option()
+            opt.mesh_show_back_face = True
+
+            # randomized view: orbit + zoom (object centred at origin, unit size)
+            ctr = vis.get_view_control()
+            ctr.set_zoom(float(rng.uniform(0.38, 0.52)))
+            ctr.rotate(float(rng.uniform(-180, 180)), float(rng.uniform(-70, 70)))
+
+            # ----- pass 1: lit RGB, fleshy jittered colour per structure
+            opt.light_on = True
+            opt.background_color = np.array([0.05, 0.05, 0.07])
+            for _label, g in geoms:
+                g.paint_uniform_color(np.asarray(dr.perturb_color([0.80, 0.55, 0.50])))
+                vis.update_geometry(g)
+            vis.poll_events()
+            vis.update_renderer()
+            rgb = np.asarray(vis.capture_screen_float_buffer(do_render=True))
+
+            # ----- pass 2: unlit flat distinct ID colours (light OFF -> flat)
+            palette = self._distinct_colors(len(geoms))
+            labels = [lab for lab, _ in geoms]
+            opt.light_on = False
+            opt.background_color = np.array([0.0, 0.0, 0.0])
+            for (_label, g), col in zip(geoms, palette):
+                g.paint_uniform_color(col)
+                vis.update_geometry(g)
+            vis.poll_events()
+            vis.update_renderer()
+            id_buf = np.asarray(vis.capture_screen_float_buffer(do_render=True))
+        finally:
+            vis.destroy_window()
+
+        rgb = self._fit(rgb, S, nearest=False)
+        id_buf = self._fit(id_buf, S, nearest=False)
+
+        # decode by nearest palette colour; far-from-any / near-black -> background
+        flat = id_buf.reshape(-1, 3)
+        idmap = np.zeros(flat.shape[0], dtype=np.int64)
+        best = np.full(flat.shape[0], np.inf)
+        for col, lab in zip(palette, labels):
+            d = ((flat - col) ** 2).sum(axis=1)
+            upd = d < best
+            best[upd] = d[upd]
+            idmap[upd] = lab
+        idmap[(best > 0.15) | (flat.sum(axis=1) < 0.08)] = 0
+        idmap = idmap.reshape(S, S)
+
+        rgb = np.clip(rgb, 0.0, 1.0) ** 0.85               # mild brightness lift
         rgb = dr.corrupt(rgb)
-        if rng.random() < self.cfg.cadaveric_prob:      # span model -> formalin look
+        if rng.random() < self.cfg.cadaveric_prob:         # span model -> formalin
             rgb = dr.cadaverize(rgb)
-
-        # ----- pass 2: unlit flat ID colours, AA + post-processing OFF (§8.2)
-        renderer.scene.clear_geometry()
-        self._disable_aa(renderer)
-        for label, mesh in meshes:
-            mat = rendering.MaterialRecord()
-            mat.shader = "defaultUnlit"
-            mat.base_color = [*id_to_rgb(label), 1.0]
-            renderer.scene.add_geometry(f"id_{label}", mesh, mat)
-        renderer.setup_camera(FOV_DEG, *cam)            # identical view to the RGB pass
-        id_rgb = np.asarray(renderer.render_to_image(), dtype=np.uint8)
-        idmap = rgb_to_id(id_rgb)
         return rgb, idmap
