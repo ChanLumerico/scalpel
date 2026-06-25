@@ -17,7 +17,7 @@ env/
 *.pth
 *.ckpt
 checkpoints/
-data/
+/data/
 meshes/
 renders/
 outputs/
