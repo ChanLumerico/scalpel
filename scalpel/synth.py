@@ -51,24 +51,33 @@ def rgb_to_id(arr: np.ndarray) -> np.ndarray:
     return r + (g << 8) + (b << 16)
 
 
-def tissue_color(name: str) -> tuple[float, float, float]:
-    """Default RGB base colour for a structure, inferred from its name.
+TISSUE_RGB = {
+    "nerve": (0.94, 0.90, 0.62),   # pale yellow-cream
+    "artery": (0.80, 0.12, 0.11),  # red
+    "vein": (0.28, 0.32, 0.58),    # bluish
+    "bone": (0.92, 0.89, 0.80),    # pale cream
+    "muscle": (0.66, 0.30, 0.28),  # red-brown
+}
 
-    Gives nerves/arteries/veins/bone their characteristic dissection colours so
-    the render is readable (and so the appearance expert sees the colour cues a
-    real exam shows). Overridable; this is just a sensible default.
-    """
+
+def tissue_of(name: str) -> str:
+    """Classify a structure by name -> nerve / artery / vein / bone / muscle."""
     n = name.lower()
     if any(k in n for k in ("nerve", "plexus", "cord", "trunk", "cutaneous", "ganglion")):
-        return (0.94, 0.90, 0.62)          # nerve: pale yellow-cream
+        return "nerve"
     if any(k in n for k in ("arter", "aorta", "circumflex", "collateral", "recurrent")):
-        return (0.80, 0.12, 0.11)          # artery: red
+        return "artery"
     if any(k in n for k in ("vein", "basilic", "cephalic", "venous", "vena")):
-        return (0.28, 0.32, 0.58)          # vein: bluish
+        return "vein"
     if any(k in n for k in ("humer", "radius", "ulna", "clavicle", "scapula", "carpal",
                             "metacarp", "phalan", "sternum", "rib", "vertebra", "bone")):
-        return (0.92, 0.89, 0.80)          # bone: pale cream
-    return (0.66, 0.30, 0.28)              # muscle / default: red-brown
+        return "bone"
+    return "muscle"
+
+
+def tissue_color(name: str) -> tuple[float, float, float]:
+    """Default dissection-readable RGB base colour for a structure (by tissue)."""
+    return TISSUE_RGB[tissue_of(name)]
 
 
 # --------------------------------------------------------------------------- #
@@ -276,9 +285,17 @@ class SyntheticRenderer:
         vis = o3d.visualization.Visualizer()
         vis.create_window(width=S, height=S, visible=self.cfg.window_visible)
         try:
+            # dissection depth: drop a random fraction of muscle layers so the deep
+            # nerves/vessels are exposed (and pinnable) in some scenes, like a real
+            # layered dissection. Nerves/vessels/bone are never dropped.
+            drop_p = float(rng.uniform(0.0, self.cfg.muscle_drop_max))
+            geoms = [(label, o3d.geometry.TriangleMesh(mesh)) for label, mesh in meshes
+                     if not (tissue_of(self._names.get(label, "")) == "muscle"
+                             and rng.random() < drop_p)]
+            if not geoms:                                  # safety: never render empty
+                geoms = [(label, o3d.geometry.TriangleMesh(mesh)) for label, mesh in meshes]
             # normalized copies (origin-centred, unit-scaled) so framing is reliable
-            # regardless of the meshes' world coordinates (BodyParts3D is full-body).
-            geoms = [(label, o3d.geometry.TriangleMesh(mesh)) for label, mesh in meshes]
+            # regardless of the meshes' world coordinates.
             allpts = np.vstack([np.asarray(g.vertices) for _, g in geoms])
             center = allpts.mean(axis=0)
             scale = 1.0 / (float(np.linalg.norm(allpts.max(0) - allpts.min(0))) + 1e-9)

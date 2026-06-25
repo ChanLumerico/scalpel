@@ -129,6 +129,7 @@ class SynthCfg:
     window_visible: bool = True  # legacy Visualizer needs a real window on macOS
     zoom_min: float = 0.30  # close framing so region+context fill the frame
     zoom_max: float = 0.42
+    muscle_drop_max: float = 0.7  # max fraction of muscle layers dropped (dissection depth)
 
 
 # --------------------------------------------------------------------------- #

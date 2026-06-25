@@ -28,6 +28,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 
 import numpy as np
@@ -61,7 +62,9 @@ def main() -> int:
         raise SystemExit(f"no meshes under {args.mesh_dir}")
     staging = os.path.join(args.out, "_staged")
     label_map = stage_meshes(paths, staging, args.max_meshes)
-    names = {v: k for k, v in label_map.items()}
+    # readable text labels: underscores -> spaces, strip trailing mesh-id digit cruft
+    names = {v: re.sub(r"(\s\d+)+$", "", k.replace("_", " ")).strip()
+             for k, v in label_map.items()}
     print(f"[vocab] {len(label_map)} structures")
 
     cfg = SynthCfg(image_size=args.image_size, cadaveric_prob=args.cadaveric_prob,

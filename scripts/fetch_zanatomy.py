@@ -53,7 +53,8 @@ REGIONS = {
         r"abdomin|pelvi|iliac|lumbar|sacr|intercostal|lung|heart|spleen|liver|kidney|"
         r"carotid|jugular|intestin|gastric|hepatic|renal|mesenteric|coronary|pulmonary|"
         r"\baorta|vena cava|vertebr|knee|ankle|psoas|phrenic|vagus|recurrent laryngeal|"
-        r"sympathetic|esophag|trache",
+        r"sympathetic|esophag|trache|digitorum longus|fibularis|soleus|gastrocnem|"
+        r"popliteus|tibialis|peroneus|calcane",
     ),
 }
 
