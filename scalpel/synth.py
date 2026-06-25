@@ -23,6 +23,8 @@ from scipy import ndimage as ndi
 
 from .config import SynthCfg
 
+FOV_DEG = 60.0  # vertical field of view (degrees) for the offscreen camera
+
 
 # --------------------------------------------------------------------------- #
 # Label <-> RGB codec (24-bit)                                                #
@@ -197,8 +199,7 @@ class SyntheticRenderer:
         return self._meshes
 
     def _random_camera(self, renderer, rng):
-        """Place the camera on a randomized view of the scene bounding box."""
-        o3d = self._o3d
+        """Set a randomized camera; return ``(center, eye, up)`` to reuse for pass 2."""
         bounds = renderer.scene.bounding_box
         center = bounds.get_center()
         extent = float(np.linalg.norm(bounds.get_extent()))
@@ -213,7 +214,26 @@ class SyntheticRenderer:
             float(rng.uniform(-self.cfg.camera_roll_deg, self.cfg.camera_roll_deg))
         )
         up = np.array([np.sin(roll), np.cos(roll), 0.0])
-        renderer.scene.camera.look_at(center, eye, up)
+        # setup_camera sets BOTH projection (fov) and view; look_at alone leaves
+        # the projection uninitialised and renders an empty image.
+        renderer.setup_camera(FOV_DEG, center, eye, up)
+        return center, eye, up
+
+    @staticmethod
+    def _disable_aa(renderer) -> None:
+        """Disable post-processing + FXAA + MSAA so ID colours decode cleanly (§8.2).
+
+        Post-processing also applies tone-mapping that would shift the flat ID
+        colours; turning it off is what keeps the label codec reversible.
+        Guarded because the exact View API varies across Open3D versions.
+        """
+        try:
+            view = renderer.scene.view
+            view.set_post_processing(False)
+            view.set_antialiasing(False)
+            view.set_sample_count(1)
+        except Exception:
+            pass
 
     def render_pair(self, dr: DomainRandomizer, rng: np.random.Generator | None = None):
         """Render one ``(rgb float[0,1] HxWx3, idmap int HxW)`` pair."""
@@ -237,18 +257,19 @@ class SyntheticRenderer:
             base = dr.perturb_color([0.8, 0.55, 0.5])  # fleshy base, jittered
             mat.base_color = [*base, 1.0]
             renderer.scene.add_geometry(f"rgb_{label}", mesh, mat)
-        self._random_camera(renderer, rng)
+        cam = self._random_camera(renderer, rng)        # sample the view ONCE
         rgb = np.asarray(renderer.render_to_image(), dtype=np.float64) / 255.0
         rgb = dr.corrupt(rgb)
 
-        # ----- pass 2: unlit flat ID colours, MSAA / post-processing off (§8.2)
+        # ----- pass 2: unlit flat ID colours, AA + post-processing OFF (§8.2)
         renderer.scene.clear_geometry()
-        renderer.scene.view.set_post_processing(False)
+        self._disable_aa(renderer)
         for label, mesh in meshes:
             mat = rendering.MaterialRecord()
             mat.shader = "defaultUnlit"
             mat.base_color = [*id_to_rgb(label), 1.0]
             renderer.scene.add_geometry(f"id_{label}", mesh, mat)
+        renderer.setup_camera(FOV_DEG, *cam)            # identical view to the RGB pass
         id_rgb = np.asarray(renderer.render_to_image(), dtype=np.uint8)
         idmap = rgb_to_id(id_rgb)
         return rgb, idmap
