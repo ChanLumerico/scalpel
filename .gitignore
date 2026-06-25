@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+
+# Caches / checkpoints / data (not committed)
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.pt
+*.pth
+*.ckpt
+checkpoints/
+data/
+meshes/
+renders/
+outputs/
+
+# torch.hub cache may land here if redirected
+.cache/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+HANDOUT.md

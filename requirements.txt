@@ -1,0 +1,14 @@
+# Core (always required)
+torch>=2.2
+torchvision>=0.17
+numpy>=1.24
+scipy>=1.10
+pillow>=10.0
+
+# Synthetic rendering (milestone M1+; excluded from the smoke path, handout §8.8)
+# Open3D is used instead of PyTorch3D/pyrender because it installs cleanly on
+# Apple Silicon (handout §9).
+# open3d>=0.18
+
+# Optional LLM reasoning backend (milestone M7; handout §2.8)
+# mlx-vlm
