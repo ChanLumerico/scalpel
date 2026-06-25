@@ -127,6 +127,8 @@ class SynthCfg:
     mesh_dir: str | None = None  # populated by the user for M1+
     unlit_id_pass: bool = True  # ID pass: unlit flat, MSAA off (§8.2)
     window_visible: bool = True  # legacy Visualizer needs a real window on macOS
+    zoom_min: float = 0.30  # close framing so region+context fill the frame
+    zoom_max: float = 0.42
 
 
 # --------------------------------------------------------------------------- #
