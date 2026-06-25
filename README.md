@@ -1,102 +1,101 @@
-# SCALPEL 🔪
+# SCALPEL 🔪 (v2 — real-data pivot)
 
 **S**ynthetic-to-real **C**adaveric **A**natomy **L**ocalization via
 **P**oint-conditioned **E**xpert **L**earning.
 
-A point-conditioned, scene-graph reasoning model for gross-anatomy spot exams. SCALPEL estimates `p(y | I, q)` — the structure `y` under a pin at pixel
-`q` in image `I` — as a **Product of Experts** over:
+A point-conditioned recognition model for gross-anatomy spot exams (*땡시*):
+given a dissection photo `I` and a pin coordinate `q`, identify the structure
+`y` under the pin — `p(y | I, q)` — or **abstain** (with top-k).
 
-- an **appearance expert** — frozen DINOv2 → point-conditioned pooling →
-  prototypical few-shot head, and
-- a **relational expert** — patch segmentation → typed scene graph → R-GCN,
+> **v2 note:** the name keeps "Synthetic", but from v2 the data is **real, not
+> synthetic**. The synthetic mesh-render pipeline (BodyParts3D / Z-Anatomy /
+> Open3D) is **removed** — it produced images a human couldn't even orient in
+> (garbage in → garbage out). Data now comes from **real BlueLink QuizLink
+> dissection PDFs**. The recognition engine is modality-agnostic and unchanged.
 
-then calibrates the fused distribution with temperature scaling and **abstains**
-when unsure. The full design rationale lives in the project handout (`HANDOUT.md`),
-kept local to the working tree and intentionally not version-controlled.
+## Why the pivot
 
-## Status — milestone M0 ✅
+Surface mesh renders have no dissection-depth axis and lost the region's shape
+and topology — fragments on a void that neither a human nor the relational
+expert could read. Domain randomization fixes *appearance*, not *missing shape*.
+So instead of *generating* shape (and failing), v2 starts from real photos where
+shape is **already guaranteed**. **Acceptance rule:** if a human can't tell the
+body region in ≤0.5 s, the data is rejected.
 
-The complete package scaffold and interface contracts (handout §4) are in place,
-and the smoke test passes with **zero external assets**:
+## Architecture
 
-```bash
-python tests/smoke_test.py        # M0 acceptance: backbone mocked, all modules threaded
+```
+scalpel/                      recognition engine (kept, modality-agnostic)
+  config.py                   hyperparameters (PipelineCfg; SynthCfg removed)
+  perception.py               frozen DINOv2 + point poolers + PatchSegmenter
+  scene_graph.py              typed scene graph
+  relational_gnn.py           R-GCN relational expert
+  heads.py                    PrototypicalHead, TemperatureScaler, ProductOfExperts
+  pipeline.py                 ScalpelPipeline.predict
+  loops.py                    fewshot_adapt, evaluate, (re)pretrain hooks
+  data/                       ★ NEW real-data pipeline (replaces synth.py)
+    crawl.py                  QuizLink fetch  (Playwright headless + gdown)
+    parse.py                  QuizLink PDF -> (clean_I, q, y)   ★ core
+    augment.py                photometric augmentation (q follows the transform)
+    loader.py                 specimen-level splits -> few-shot gallery / testset
+    vocab.py                  label normalization + closed vocabulary 𝒱
 ```
 
-Milestone map (handout §6): **M0 scaffold ✅** → M1 synthetic render → M2
-appearance pretrain → M3 relational expert → M4 PoE + calibration → M5 few-shot
-adapt → M6 evaluation → M7 (optional) MLX + LLM.
+The MVP is the **appearance expert alone** (DINOv2 frozen + GaussianPool +
+prototypical few-shot — almost no training). The relational expert returns later
+on SSL over-segmentation (DINOv2 patch clustering) weakly supervised by the
+sparse pin labels; PoE fusion + temperature calibration + abstention stay.
 
-## Package layout
+## Data: BlueLink QuizLink (verified PDF structure)
 
-| Module | Responsibility |
-|---|---|
-| `scalpel/config.py` | All hyperparameters as dataclasses; `default_device()` (mps>cuda>cpu) |
-| `scalpel/perception.py` | Frozen `DinoBackbone`, point poolers (`GaussianPool`, `PinCrossAttention`), `PatchSegmenter` |
-| `scalpel/scene_graph.py` | Typed scene graph (`build_scene_graph`, `pin_region_index`) |
-| `scalpel/relational_gnn.py` | R-GCN relational expert + `to_tensors` |
-| `scalpel/heads.py` | `PrototypicalHead`, `TemperatureScaler`, `ProductOfExperts` |
-| `scalpel/llm_reasoner.py` | Optional frozen-LM reasoning layer (Set-of-Mark / graph prompt) |
-| `scalpel/synth.py` | Label codec, domain randomization, `SyntheticRenderer` (Open3D, lazy) |
-| `scalpel/pipeline.py` | `ScalpelPipeline.predict` — end-to-end |
-| `scalpel/loops.py` | `synthetic_pretrain`, `pretrain_gnn`, `fewshot_adapt`, `evaluate` |
+Each QuizLink PDF page = one dissection photo as a single baked JPEG2000 image
+`Im0` (3000×2250) containing the photo + blue leader lines + label boxes + the
+**answer text**, all baked into pixels. Click-to-reveal is an AcroForm button
+overlay that *masks* the answer — so extracting the raw `Im0` already shows the
+answer (no click simulation needed). Parsing:
 
-Heavy entry points are exposed via PEP 562 lazy imports, so importing `scalpel`
-or a lightweight submodule never pulls in torch.hub / Open3D (handout §4.10, §8.7).
+| info | where | how |
+|---|---|---|
+| answer `y` | baked text in a label box | crop box → **OCR** |
+| box position | **button widget rect** (structured) | PDF→`Im0` pixel transform |
+| leader line | blue line in `Im0` (solid=point, dashed=region) | **HSV segmentation** |
+| pin `q` | tissue-side end of the leader (or region centroid) | trace from box |
+
+**Critical (label leak):** the model input `clean_I` must have the answer text
+**and** leader lines removed/inpainted, or the model cheats by reading the text.
+
+**Crawl reality:** the QuizLink index renders Drive links only via JavaScript
+(static fetch returns navigation only — verified twice), so a **headless
+browser (Playwright) is required**; the ~95 MB Drive PDFs need a token-handling
+downloader (**gdown**). Polite policy: concurrency 1, ≥2 s between requests,
+cache, robots.
 
 ## Install
 
 ```bash
-pip install -r requirements.txt          # core: torch, torchvision, numpy, scipy, pillow
-# pip install open3d                      # for M1+ synthetic rendering (Apple-Silicon friendly)
+pip install -r requirements.txt
+playwright install chromium     # one-time, for crawl
+# parse needs the tesseract binary: brew install tesseract
+python tests/smoke_test.py      # M0 acceptance (engine; zero external assets)
 ```
 
-Target hardware: Apple Silicon (`mps`); the bottleneck is setup, not compute
-(handout §9).
+## Milestones (v2)
 
-## Generating synthetic data (M1)
+`M0` scaffold+smoke ✅ → **WIPE** (remove synth) → `M1'` crawl → `M2'` parse →
+`M3'` loader/augment/vocab → `M4'` appearance MVP → `M5'` calibration+abstention
+→ `M6'` relational expert (later).
 
-The render uses Open3D, which **cannot run headless on macOS** (Filament reports
-`EGL Headless is not supported`) — so the render must run in an **interactive GUI
-Terminal**, in a Python 3.11/3.12 venv (3.14 has no Open3D wheel):
+## Ethics & license (hard requirements)
 
-```bash
-python3.12 -m venv .venv-render && source .venv-render/bin/activate
-pip install open3d numpy scipy pillow certifi
+Personal, **non-commercial educational** use only — the range BlueLink permits.
 
-# fetch a curated region of real meshes (BodyParts3D mirror, CC BY-SA)
-python scripts/fetch_bodyparts3d.py --out .cache/bodyparts3d/meshes --validate
+- **Attribution (kept in all outputs/README):** *BlueLink, © B. Kathleen Alsup
+  & Glenn M. Fox, University of Michigan — used for non-commercial educational
+  purposes.*
+- **Notify authors** (recommended): `bluelinkanatomy@gmail.com`.
+- **Polite crawl** (concurrency 1, ≥2 s, cache, robots), **donor dignity**
+  (private storage, no redistribution, no commercial use), and **never use real
+  exam-question photos** anywhere (train/eval/gallery).
 
-# render one (rgb, idmap) pair + an (I, q, y) triple, with a decode-sanity report
-python scripts/demo_render.py --mesh-dir .cache/bodyparts3d/meshes --out outputs/demo.png
-```
-
-Note: the BodyParts3D STL set is **bones + muscles only** (no nerves/arteries/
-veins). The full nerve/artery/vein/muscle/bone mix of the closed vocabulary
-(handout §1.5) needs an additional source such as Z-Anatomy.
-
-## Data sources, licenses & attribution
-
-SCALPEL trains on synthetic renders, adapts on a small real gallery, and is
-evaluated on a held-out real benchmark (handout §5). **Respect every license and
-treat donor imagery with dignity.**
-
-| Source | Use | License / terms |
-|---|---|---|
-| **BodyParts3D / Z-Anatomy** | Synthetic meshes (training) | CC BY-SA — **attribution required**; share-alike |
-| **Visible Human Project** (NLM) | Real cadaver cross-sections | Public domain |
-| **BlueLink** (Univ. of Michigan) | Real photos + QuizLink (eval only) | Not CC — educational/non-commercial use, attribution, author notification |
-
-**Not used** (copyright risk): commercial atlases (Netter / Sobotta /
-Photographic Atlas) and Internet Archive scans. Most permitted sources are
-non-commercial; re-verify terms before any commercial distribution.
-
-**Evaluation discipline:** BlueLink **QuizLink** is the closest match to the real
-exam format and is used as the **test set only** — never for training (handout
-§2.10). Train/val/test splits are made at the **specimen** level, not the image
-level, because triples from one photo are strongly correlated (handout §5.2).
-
-## License
-
-Code: TBD by the author. Note the CC BY-SA share-alike obligation that attaches
-to any redistributed BodyParts3D/Z-Anatomy-derived assets.
+Removed (copyright): commercial atlases. The synthetic-mesh sources
+(BodyParts3D / Z-Anatomy, CC BY-SA) are no longer used in v2.
