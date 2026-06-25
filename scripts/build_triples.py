@@ -97,7 +97,7 @@ def main() -> int:
 
         if args.preview and i < 6:
             x, y, lab = pins[0]["x"], pins[0]["y"], pins[0]["label"]
-            pv = mark_pin(Image.fromarray(rgb_u8), (x, y), r=16)
+            pv = mark_pin(Image.fromarray(rgb_u8), (x, y), r=12, style="circle")  # clean ring, no arrow
             pv.save(os.path.join(args.out, f"previews/{i:04d}_marked_{names.get(lab,'?')}.png"))
         print(f"  scene {i}: {len(pins)} pins")
 

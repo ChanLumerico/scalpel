@@ -72,10 +72,17 @@ def mark_pin(img, q, r: int = 14, style: str = "arrow",
     draw = ImageDraw.Draw(out)
     x, y = float(q[0]), float(q[1])
     if style == "arrow":
-        a = math.radians(angle_deg)
-        tx, ty = x + length * math.cos(a), y + length * math.sin(a)   # tail (outside)
+        # point the arrow inward (tail toward the image centre) so it is never
+        # clipped off-screen for pins near an edge.
+        cx, cy = out.width / 2.0, out.height / 2.0
+        dx, dy = cx - x, cy - y
+        d = math.hypot(dx, dy)
+        if d < 1.0:                                   # pin at centre: default angle
+            dx, dy, d = math.cos(math.radians(angle_deg)), math.sin(math.radians(angle_deg)), 1.0
+        a = math.atan2(dy, dx)                        # direction q -> interior (tail)
+        tx, ty = x + length * math.cos(a), y + length * math.sin(a)
         draw.line([tx, ty, x, y], fill=color, width=max(5, r // 2 * 2))
-        head = r + 10
+        head = r + 10                                 # barbs at the tip, pointing back to tail
         p1 = (x + head * math.cos(a + 0.42), y + head * math.sin(a + 0.42))
         p2 = (x + head * math.cos(a - 0.42), y + head * math.sin(a - 0.42))
         draw.polygon([(x, y), p1, p2], fill=color)
