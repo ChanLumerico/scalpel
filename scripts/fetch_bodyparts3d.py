@@ -38,6 +38,27 @@ RAW = "https://raw.githubusercontent.com/Kevin-Mattheus-Moerman/BodyParts3D/main
 # region -> (include regex, exclude regex). Exclusions kill look-alikes from other
 # regions (e.g. flexor digitorum *brevis* is a FOOT muscle, not forearm).
 REGIONS = {
+    "shoulder-arm": (
+        r"humer|radius|ulna|clavicle|scapula|deltoid|biceps|triceps|brachi|"
+        r"coracobrachialis|pronator|supinator|flexor|extensor|carpi|phalanx|"
+        r"metacarp|carpal|pectoralis|latissimus|teres|supraspinatus|infraspinatus|"
+        r"subscapularis|serratus anterior|rhomboid|trapezius|levator scapulae|subclavius",
+        r"hallucis|digitorum longus|\bbrevis\b|hallux|foot|toe|tibia|femur|patella|"
+        r"fibula|tarsal|metatars|thigh|knee|ankle|plantar|sole|lumbar|sacr|pelvi|"
+        r"abdomin|gluteus|psoas|iliac|colli|capitis|cervicis",
+    ),
+    "upper-body": (
+        r"humer|radius|ulna|clavicle|scapula|deltoid|biceps|triceps|brachi|"
+        r"coracobrachialis|pronator|supinator|flexor|extensor|carpi|phalanx|"
+        r"metacarp|carpal|pectoralis|latissimus|trapezius|serratus|rhomboid|"
+        r"levator scapulae|supraspinatus|infraspinatus|teres|subscapularis|"
+        r"subclavius|sternocleidomastoid|scalenus|splenius|semispinalis|longus|"
+        r"omohyoid|sternohyoid|rib\b|costal|sternum|manubrium|"
+        r"thoracic vertebra|cervical vertebra",
+        r"hallucis|digitorum longus|\bbrevis\b|hallux|foot|toe|tibia|femur|patella|"
+        r"fibula|tarsal|metatars|thigh|knee|ankle|plantar|sole|lumbar|sacr|pelvi|"
+        r"abdomin|gluteus|psoas|iliac|colli",
+    ),
     "upper-limb": (
         r"humer|radius|ulna|clavicle|scapula|subscapularis|deltoid|levator scapulae|"
         r"interosseous membrane of (right|left) forearm|extensor carpi|flexor carpi|"
