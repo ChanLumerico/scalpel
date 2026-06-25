@@ -54,6 +54,27 @@ pip install -r requirements.txt          # core: torch, torchvision, numpy, scip
 Target hardware: Apple Silicon (`mps`); the bottleneck is setup, not compute
 (handout §9).
 
+## Generating synthetic data (M1)
+
+The render uses Open3D, which **cannot run headless on macOS** (Filament reports
+`EGL Headless is not supported`) — so the render must run in an **interactive GUI
+Terminal**, in a Python 3.11/3.12 venv (3.14 has no Open3D wheel):
+
+```bash
+python3.12 -m venv .venv-render && source .venv-render/bin/activate
+pip install open3d numpy scipy pillow certifi
+
+# fetch a curated region of real meshes (BodyParts3D mirror, CC BY-SA)
+python scripts/fetch_bodyparts3d.py --out .cache/bodyparts3d/meshes --validate
+
+# render one (rgb, idmap) pair + an (I, q, y) triple, with a decode-sanity report
+python scripts/demo_render.py --mesh-dir .cache/bodyparts3d/meshes --out outputs/demo.png
+```
+
+Note: the BodyParts3D STL set is **bones + muscles only** (no nerves/arteries/
+veins). The full nerve/artery/vein/muscle/bone mix of the closed vocabulary
+(handout §1.5) needs an additional source such as Z-Anatomy.
+
 ## Data sources, licenses & attribution
 
 SCALPEL trains on synthetic renders, adapts on a small real gallery, and is
