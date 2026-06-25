@@ -267,10 +267,12 @@ class SyntheticRenderer:
             opt = vis.get_render_option()
             opt.mesh_show_back_face = True
 
-            # randomized view: orbit + zoom (object centred at origin, unit size)
+            # framing: centred on the body, zoom so the region + surrounding body
+            # fill the frame (limited elevation -> natural front/side views, not
+            # top-down). Real spot-exam photos are close-ups embedded in context.
             ctr = vis.get_view_control()
-            ctr.set_zoom(float(rng.uniform(0.38, 0.52)))
-            ctr.rotate(float(rng.uniform(-180, 180)), float(rng.uniform(-70, 70)))
+            ctr.set_zoom(float(rng.uniform(self.cfg.zoom_min, self.cfg.zoom_max)))
+            ctr.rotate(float(rng.uniform(-180, 180)), float(rng.uniform(-35, 35)))
 
             # ----- pass 1: lit RGB, fleshy jittered colour per structure
             opt.light_on = True
