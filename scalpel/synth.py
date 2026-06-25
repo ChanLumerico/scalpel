@@ -253,6 +253,19 @@ class SyntheticRenderer:
         )
 
     @staticmethod
+    def _tissue_fill(S: int, rng: np.random.Generator) -> np.ndarray:
+        """Procedural fat/fascia field that fills background + gaps (geometric realism)."""
+        base = np.array([0.82, 0.67, 0.50])               # fat / connective tissue (tan)
+        lob = ndi.gaussian_filter(rng.standard_normal((S, S)), 9.0)
+        lob = (lob - lob.min()) / (np.ptp(lob) + 1e-9)    # lobular fat pattern
+        marble = np.clip(ndi.gaussian_filter(rng.standard_normal((S, S)), 3.0), 0, None)
+        img = base[None, None, :] * (0.65 + 0.5 * lob)[..., None]
+        img[..., 0] += 0.12 * marble                      # reddish marbling
+        img[..., 1] += 0.04 * marble
+        img = img + rng.standard_normal((S, S, 3)) * 0.02
+        return np.clip(img, 0.0, 1.0)
+
+    @staticmethod
     def _fit(arr: np.ndarray, S: int, nearest: bool) -> np.ndarray:
         """Resize a capture to ``(S, S)`` (macOS Retina backing buffers are 2x)."""
         if arr.shape[0] == S and arr.shape[1] == S:
@@ -355,8 +368,15 @@ class SyntheticRenderer:
         idmap = idmap.reshape(S, S)
 
         rgb = np.clip(rgb, 0.0, 1.0) ** 0.85               # mild brightness lift
+        # fill background + inter-structure gaps with surrounding tissue (fat/fascia)
+        # so the frame is a continuous tissue FIELD, not separated objects on a black
+        # void. This closes the *geometric* sim-to-real gap that DR (appearance only)
+        # cannot: a real cadaver photo has tissue everywhere, never a void.
+        if self.cfg.tissue_fill:
+            bg = idmap == 0
+            if bg.any():
+                rgb[bg] = self._tissue_fill(S, rng)[bg]
         rgb = dr.corrupt(rgb)
-        if rng.random() < self.cfg.cadaveric_prob:         # formalin look, TISSUE only
-            fg = (idmap > 0)[..., None]                    # keep the background dark
-            rgb = np.where(fg, dr.cadaverize(rgb), rgb)
+        if rng.random() < self.cfg.cadaveric_prob:         # formalin look over the field
+            rgb = dr.cadaverize(rgb)
         return rgb, idmap
