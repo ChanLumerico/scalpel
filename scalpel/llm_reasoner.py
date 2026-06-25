@@ -56,16 +56,33 @@ class StubBackend:
 # --------------------------------------------------------------------------- #
 # Prompt construction                                                         #
 # --------------------------------------------------------------------------- #
-def mark_pin(img, q, r: int = 14):
-    """Set-of-Mark: draw a marker at pin ``q = (x, y)`` on a copy of ``img``."""
+def mark_pin(img, q, r: int = 14, style: str = "arrow",
+             angle_deg: float = 35.0, length: int = 95, color=(220, 20, 20)):
+    """Set-of-Mark: mark pin ``q = (x, y)`` on a copy of ``img``.
+
+    ``style="arrow"`` draws a thick red arrow pointing at q — the gross-anatomy
+    spot-exam convention (the real exam marks the target with an arrow).
+    ``style="circle"`` draws the original ringed crosshair.
+    """
+    import math
+
     from PIL import ImageDraw
 
     out = img.convert("RGB").copy()
     draw = ImageDraw.Draw(out)
     x, y = float(q[0]), float(q[1])
-    draw.ellipse([x - r, y - r, x + r, y + r], outline=(255, 0, 0), width=3)
-    draw.line([x - r - 4, y, x + r + 4, y], fill=(255, 0, 0), width=2)
-    draw.line([x, y - r - 4, x, y + r + 4], fill=(255, 0, 0), width=2)
+    if style == "arrow":
+        a = math.radians(angle_deg)
+        tx, ty = x + length * math.cos(a), y + length * math.sin(a)   # tail (outside)
+        draw.line([tx, ty, x, y], fill=color, width=max(5, r // 2 * 2))
+        head = r + 10
+        p1 = (x + head * math.cos(a + 0.42), y + head * math.sin(a + 0.42))
+        p2 = (x + head * math.cos(a - 0.42), y + head * math.sin(a - 0.42))
+        draw.polygon([(x, y), p1, p2], fill=color)
+    else:
+        draw.ellipse([x - r, y - r, x + r, y + r], outline=color, width=3)
+        draw.line([x - r - 4, y, x + r + 4, y], fill=color, width=2)
+        draw.line([x, y - r - 4, x, y + r + 4], fill=color, width=2)
     return out
 
 
