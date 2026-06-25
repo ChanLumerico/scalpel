@@ -120,12 +120,13 @@ class SynthCfg:
     color_jitter: float = 0.15  # per-channel multiplicative jitter
     gauss_noise_std: float = 0.04
     blur_sigma_max: float = 1.5
-    occlusion_prob: float = 0.3
-    occlusion_max_frac: float = 0.15  # max occluder area as frac of image
+    occlusion_prob: float = 0.25
+    occlusion_max_frac: float = 0.07  # max occluder area as frac of image
     cadaveric_prob: float = 0.5  # P(shift render toward pale formalin-cadaver look)
     camera_roll_deg: float = 20.0
     mesh_dir: str | None = None  # populated by the user for M1+
     unlit_id_pass: bool = True  # ID pass: unlit flat, MSAA off (§8.2)
+    window_visible: bool = True  # legacy Visualizer needs a real window on macOS
 
 
 # --------------------------------------------------------------------------- #
