@@ -51,6 +51,26 @@ def rgb_to_id(arr: np.ndarray) -> np.ndarray:
     return r + (g << 8) + (b << 16)
 
 
+def tissue_color(name: str) -> tuple[float, float, float]:
+    """Default RGB base colour for a structure, inferred from its name.
+
+    Gives nerves/arteries/veins/bone their characteristic dissection colours so
+    the render is readable (and so the appearance expert sees the colour cues a
+    real exam shows). Overridable; this is just a sensible default.
+    """
+    n = name.lower()
+    if any(k in n for k in ("nerve", "plexus", "cord", "trunk", "cutaneous", "ganglion")):
+        return (0.94, 0.90, 0.62)          # nerve: pale yellow-cream
+    if any(k in n for k in ("arter", "aorta", "circumflex", "collateral", "recurrent")):
+        return (0.80, 0.12, 0.11)          # artery: red
+    if any(k in n for k in ("vein", "basilic", "cephalic", "venous", "vena")):
+        return (0.28, 0.32, 0.58)          # vein: bluish
+    if any(k in n for k in ("humer", "radius", "ulna", "clavicle", "scapula", "carpal",
+                            "metacarp", "phalan", "sternum", "rib", "vertebra", "bone")):
+        return (0.92, 0.89, 0.80)          # bone: pale cream
+    return (0.66, 0.30, 0.28)              # muscle / default: red-brown
+
+
 # --------------------------------------------------------------------------- #
 # Domain randomization (xi)                                                   #
 # --------------------------------------------------------------------------- #
@@ -201,13 +221,16 @@ class SyntheticRenderer:
         o3d = self._ensure_open3d()
         if self._meshes:
             return self._meshes
+        self._names = {}
         for fname in sorted(os.listdir(self.mesh_dir)):
             stem = os.path.splitext(fname)[0]
             if stem not in self.label_map:
                 continue
             mesh = o3d.io.read_triangle_mesh(os.path.join(self.mesh_dir, fname))
             mesh.compute_vertex_normals()
-            self._meshes.append((self.label_map[stem], mesh))
+            lab = self.label_map[stem]
+            self._meshes.append((lab, mesh))
+            self._names[lab] = stem
         if not self._meshes:
             raise RuntimeError(f"no labelled meshes found under {self.mesh_dir!r}")
         return self._meshes
@@ -277,8 +300,9 @@ class SyntheticRenderer:
             # ----- pass 1: lit RGB, fleshy jittered colour per structure
             opt.light_on = True
             opt.background_color = np.array([0.05, 0.05, 0.07])
-            for _label, g in geoms:
-                g.paint_uniform_color(np.asarray(dr.perturb_color([0.80, 0.55, 0.50])))
+            for label, g in geoms:
+                base = tissue_color(self._names.get(label, ""))
+                g.paint_uniform_color(np.asarray(dr.perturb_color(base)))
                 vis.update_geometry(g)
             vis.poll_events()
             vis.update_renderer()

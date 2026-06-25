@@ -54,10 +54,14 @@ REGIONS = {
         r"levator scapulae|supraspinatus|infraspinatus|teres|subscapularis|"
         r"subclavius|sternocleidomastoid|scalenus|splenius|semispinalis|longus|"
         r"omohyoid|sternohyoid|rib\b|costal|sternum|manubrium|"
-        r"thoracic vertebra|cervical vertebra",
+        r"thoracic vertebra|cervical vertebra|"
+        # central / axillary vessels (BodyParts3D has these; peripheral arm
+        # nerves+vessels need Z-Anatomy)
+        r"subclavian|carotid|jugular|brachiocephalic|arch of aorta|ascending aorta|"
+        r"vena cava|axillary|pulmonary artery|pulmonary vein|thyroid",
         r"hallucis|digitorum longus|\bbrevis\b|hallux|foot|toe|tibia|femur|patella|"
         r"fibula|tarsal|metatars|thigh|knee|ankle|plantar|sole|lumbar|sacr|pelvi|"
-        r"abdomin|gluteus|psoas|iliac|colli",
+        r"abdomin|gluteus|psoas|iliac|colli|inferior vena cava|descending aorta",
     ),
     "upper-limb": (
         r"humer|radius|ulna|clavicle|scapula|subscapularis|deltoid|levator scapulae|"
