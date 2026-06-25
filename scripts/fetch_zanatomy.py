@@ -36,6 +36,30 @@ SYSTEMS = {  # FBX stem on the repo
 }
 
 REGIONS = {
+    "foot": (
+        # foot + ankle + lower leg: bones, intrinsic/extrinsic muscles, and the
+        # foot's own neurovascular bundle (tibial/plantar nerves, dorsalis pedis...)
+        r"tarsal|metatars|calcane|talus|navicular|cuboid|cuneiform|sesamoid|"
+        r"phalanx of (foot|toe|.*toe)|distal phalanx of (foot|.*toe)|\btibia\b|fibula|"
+        r"flexor digitorum longus|flexor digitorum brevis|extensor digitorum longus|"
+        r"extensor digitorum brevis|flexor hallucis|extensor hallucis|abductor hallucis|"
+        r"adductor hallucis|abductor digiti minimi of foot|flexor digiti minimi.*foot|"
+        r"quadratus plantae|lumbrical of foot|.*interossei of foot|plantar interossei|"
+        r"dorsal interossei of foot|gastrocnem|soleus|plantaris|popliteus|tibialis|"
+        r"fibularis|peroneus|"
+        r"tibial nerve|plantar nerve|medial plantar|lateral plantar|sural nerve|"
+        r"deep fibular nerve|superficial fibular nerve|saphenous nerve|plantar digital|"
+        r"posterior tibial artery|anterior tibial artery|dorsalis pedis|plantar arter|"
+        r"fibular artery|peroneal artery|arcuate artery|saphenous vein|plantar vein|"
+        r"dorsal venous arch|dorsal digital",
+        r"hand|finger|thumb|pollic|carpal|metacarp|humer|radius|\bulna\b|clavicle|scapula|"
+        r"deltoid|biceps|triceps|brachi|pectoral|latissimus|trapezius|rhomboid|serratus|"
+        r"thorax|thoracic|\brib\b|sternum|cervical|neck|brain|skull|mandible|cranium|"
+        r"femur|femoral|patella|quadriceps|rectus femoris|vastus|sartorius|gracilis|"
+        r"adductor longus|adductor magnus|adductor brevis|hamstring|biceps femoris|"
+        r"semitendin|semimembran|gluteal|pelvi|iliac|lumbar|sacr|abdomin|\bhip\b|"
+        r"lung|heart|liver|kidney|intestin|viscer|median nerve|ulnar nerve|radial nerve",
+    ),
     "upper-body": (
         # arm neurovascular + ALL upper-body musculoskeletal, so the scene shows a
         # recognizable torso/shoulder/neck for orientation (not a disembodied arm).
