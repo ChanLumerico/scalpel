@@ -31,3 +31,5 @@ outputs/
 .vscode/
 
 HANDOUT.md
+.venv-render/
+.venv*/

@@ -110,8 +110,8 @@ class DomainRandomizer:
             oh = max(1, int(H * np.sqrt(frac)))
             ox = int(self.rng.integers(0, max(1, W - ow)))
             oy = int(self.rng.integers(0, max(1, H - oh)))
-            shade = self.rng.uniform(0.0, 0.35, size=(1, 1, out.shape[2]))  # dark (shadow/instrument)
-            out[oy : oy + oh, ox : ox + ow, :] = shade
+            # darken the patch (a soft shadow/occluder) rather than paint a solid block
+            out[oy : oy + oh, ox : ox + ow, :] *= float(self.rng.uniform(0.1, 0.45))
 
         return np.clip(out, 0.0, 1.0)
 
@@ -313,6 +313,7 @@ class SyntheticRenderer:
 
         rgb = np.clip(rgb, 0.0, 1.0) ** 0.85               # mild brightness lift
         rgb = dr.corrupt(rgb)
-        if rng.random() < self.cfg.cadaveric_prob:         # span model -> formalin
-            rgb = dr.cadaverize(rgb)
+        if rng.random() < self.cfg.cadaveric_prob:         # formalin look, TISSUE only
+            fg = (idmap > 0)[..., None]                    # keep the background dark
+            rgb = np.where(fg, dr.cadaverize(rgb), rgb)
         return rgb, idmap
