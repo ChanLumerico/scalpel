@@ -122,6 +122,7 @@ class SynthCfg:
     blur_sigma_max: float = 1.5
     occlusion_prob: float = 0.3
     occlusion_max_frac: float = 0.15  # max occluder area as frac of image
+    cadaveric_prob: float = 0.5  # P(shift render toward pale formalin-cadaver look)
     camera_roll_deg: float = 20.0
     mesh_dir: str | None = None  # populated by the user for M1+
     unlit_id_pass: bool = True  # ID pass: unlit flat, MSAA off (§8.2)

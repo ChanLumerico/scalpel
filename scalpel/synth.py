@@ -73,6 +73,22 @@ class DomainRandomizer:
         factor = self.rng.uniform(1.0 - j, 1.0 + j, size=base.shape)
         return np.clip(base * factor, 0.0, 1.0)
 
+    def cadaverize(self, img: np.ndarray) -> np.ndarray:
+        """Shift colours toward a pale, desaturated formalin-cadaver look (§2.3, §8.5).
+
+        The evaluation target (formalin-fixed cadaver) is pale tan and very
+        low-saturation — unlike bright mesh renders. This DR op spans that gap so
+        synthetic training covers the real exam domain rather than chasing
+        photorealism.
+        """
+        out = np.clip(np.asarray(img, dtype=np.float64), 0.0, 1.0)
+        lum = (out * np.array([0.299, 0.587, 0.114])).sum(-1, keepdims=True)
+        s = float(self.rng.uniform(0.12, 0.32))      # low residual saturation
+        desat = lum * (1 - s) + out * s
+        tint = np.array([0.95, 0.83, 0.66])          # warm tan / beige
+        pale = (0.40 + 0.55 * lum) * tint            # pale, low-contrast base
+        return np.clip(0.5 * desat + 0.5 * pale, 0.0, 1.0)
+
     def corrupt(self, img: np.ndarray) -> np.ndarray:
         """Apply noise / blur / occlusion to an RGB float image in [0, 1]."""
         out = np.asarray(img, dtype=np.float64).copy()
@@ -260,6 +276,8 @@ class SyntheticRenderer:
         cam = self._random_camera(renderer, rng)        # sample the view ONCE
         rgb = np.asarray(renderer.render_to_image(), dtype=np.float64) / 255.0
         rgb = dr.corrupt(rgb)
+        if rng.random() < self.cfg.cadaveric_prob:      # span model -> formalin look
+            rgb = dr.cadaverize(rgb)
 
         # ----- pass 2: unlit flat ID colours, AA + post-processing OFF (§8.2)
         renderer.scene.clear_geometry()
