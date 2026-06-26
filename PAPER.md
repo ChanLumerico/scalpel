@@ -128,6 +128,10 @@ relational expert (R-GCN), and PoE fusion, none adopted as of this report (§6.4
 
 ## 5. Experiment Index
 
+> Full per-experiment detail (5W1H: when / why / how / where / result / conclusion /
+> reproduce) is in **`RESEARCH_LOG.md`** (the running research journal). This table
+> is the one-line index.
+
 | # | Experiment | Key result |
 |---|---|---|
 | 005 | proto baseline | top1 38.8±3.4 / top5 55.8±4.0 |
@@ -145,6 +149,7 @@ relational expert (R-GCN), and PoE fusion, none adopted as of this report (§6.4
 | 018 | deployment operating point (premature) | 19%±11 answer rate at 90% target — not ready |
 | 019 | backbone scaling | vitb14 46.6 / vitl14 46.8 / vitg14 47.7 (marginal) |
 | 020 | structured relational context (M6' step 1) | no top1 gain (+region −3.5, +neighbor −0.4) |
+| 021 | singletons in gallery (A-1) | vocab ~201→448 (2.2×) at −2.9 pp top1 cost |
 
 ---
 
