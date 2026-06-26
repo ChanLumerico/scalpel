@@ -114,13 +114,18 @@ def _leader_pin(im0: np.ndarray, leader_blue: np.ndarray, box) -> tuple[int, int
     lbl, n = ndi.label(leader_blue > 0)
     if n == 0:
         return int(bx), int(by)
-    best, bestd = None, 1e18  # component nearest the box
-    for i in range(1, n + 1):
-        ys, xs = np.where(lbl == i)
-        d = ((xs - bx) ** 2 + (ys - by) ** 2).min()
-        if d < bestd:
-            bestd, best = d, (xs, ys)
-    xs, ys = best
+    # vectorized: scan the labelled image ONCE (a noisy page can have ~1000
+    # speck components; the old per-component np.where was O(n x pixels)).
+    ys, xs = np.where(lbl > 0)
+    comp = lbl[ys, xs]
+    big = np.bincount(comp) >= 50  # drop tiny noise specks; keep real leader lines
+    keep = big[comp]
+    if not keep.any():
+        return int(bx), int(by)
+    ys, xs, comp = ys[keep], xs[keep], comp[keep]
+    nearest = comp[np.argmin((xs - bx) ** 2 + (ys - by) ** 2)]  # leader closest to box
+    sel = comp == nearest
+    xs, ys = xs[sel], ys[sel]
     pts = np.stack([xs, ys], 1).astype(np.int32)
     hull_area = cv2.contourArea(cv2.convexHull(pts)) if xs.size >= 3 else 0.0
     enclosed = hull_area > 40 * 40 and xs.size / (hull_area + 1.0) < 0.08
