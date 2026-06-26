@@ -8,3 +8,4 @@
 | [002-pooling-ablation](002-pooling-ablation/report.md) | 점 풀링 애블레이션 | 2026-06-26 | best=sigma20 top1 34.1% (σ40=31.3%) |
 | [005-baseline-mseed](005-baseline-mseed/report.md) | 베이스라인 (baseline-mseed) | 2026-06-26 | top1 38.8±3.4% / top5 55.8±4.0% @cov83.2% (200-way, 10 seeds) |
 | [006-pooling-ablation](006-pooling-ablation/report.md) | 점 풀링 애블레이션 | 2026-06-26 | best=sigma10 top1 41.2±5.0% (σ40=38.8%) |
+| [007-calibration](007-calibration/report.md) | 보정 + 기권 (M5') | 2026-06-26 | acc@cov100=38.8% → 상위30%만 답 78.4% | ECE 0.4→0.2 (10 seeds) |

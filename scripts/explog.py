@@ -90,6 +90,34 @@ def barh_pairs(path, pairs, title, xlabel="count"):
     plt.close(fig)
 
 
+def lineplot(path, curves, title, xlabel, ylabel, xlim=None, ylim=None,
+             diagonal=False, hline=None):
+    """curves = list of (label, xs, ys[, ystd]). diagonal -> y=x ideal line."""
+    fig, ax = plt.subplots(figsize=(6.2, 4.6))
+    if diagonal:
+        ax.plot([0, 1], [0, 1], "--", color="gray", lw=1, label="ideal (calibrated)")
+    if hline is not None:
+        ax.axhline(hline[0], ls=":", color="crimson", lw=1, label=hline[1])
+    for c in curves:
+        label, xs, ys = c[0], c[1], c[2]
+        line, = ax.plot(xs, ys, marker="o", ms=3, label=label)
+        if len(c) > 3 and c[3] is not None:
+            ys, ystd = np.array(ys), np.array(c[3])
+            ax.fill_between(xs, ys - ystd, ys + ystd, alpha=0.15, color=line.get_color())
+    ax.set_title(title)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    if xlim:
+        ax.set_xlim(*xlim)
+    if ylim:
+        ax.set_ylim(*ylim)
+    ax.grid(alpha=0.3)
+    ax.legend(fontsize=8)
+    fig.tight_layout()
+    fig.savefig(path, dpi=120)
+    plt.close(fig)
+
+
 def montage(path, examples, base, ncol=4):
     """Grid of predictions (CONTAINS cadaver imagery -> name it *.private.png).
 
