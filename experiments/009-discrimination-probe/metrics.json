@@ -1,0 +1,27 @@
+{
+  "title": "판별 진단",
+  "date": "2026-06-26",
+  "headline": "best=exemplar top1 46.6±3.6% (proto 38.8) → 학습/구조 보상 신호 있음",
+  "methods": {
+    "proto": {
+      "top1": 38.8,
+      "top1_std": 3.4,
+      "top5": 55.8
+    },
+    "exemplar": {
+      "top1": 46.6,
+      "top1_std": 3.6,
+      "top5": 57.9
+    },
+    "knn5": {
+      "top1": 32.3,
+      "top1_std": 5.1,
+      "top5": 57.9
+    },
+    "region": {
+      "top1": 41.0,
+      "top1_std": 3.0,
+      "top5": 55.8
+    }
+  }
+}
