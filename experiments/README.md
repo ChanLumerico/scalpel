@@ -11,3 +11,4 @@
 | [007-calibration](007-calibration/report.md) | 보정 + 기권 (M5') | 2026-06-26 | acc@cov100=38.8% → 상위30%만 답 78.4% | ECE 0.4→0.2 (10 seeds) |
 | [008-context-probe](008-context-probe/report.md) | 관계/맥락 프로브 | 2026-06-26 | best=ms_cls top1 41.0±2.9% (local 38.8±3.4, Δ2.2) → 노이즈 안 — 단순 맥락 concat은 무효 |
 | [009-discrimination-probe](009-discrimination-probe/report.md) | 판별 진단 | 2026-06-26 | best=exemplar top1 46.6±3.6% (proto 38.8) → 학습/구조 보상 신호 있음 |
+| [010-baseline-exemplar](010-baseline-exemplar/report.md) | 정식 모델: exemplar + 보정 | 2026-06-26 | exemplar top1 46.6±3.6% / top5 58.0±4.4% @cov83.2% | 상위30% 88.5% |
