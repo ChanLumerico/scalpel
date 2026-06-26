@@ -155,6 +155,11 @@ relational expert (R-GCN), and PoE fusion, none adopted as of this report (§6.4
 | 024 | feature-coherent pooling | top1 flat (top5↑) — same pattern; DINO already structure-local |
 | 025 | region-conditioned prior | top1 +0.5 (marginal), top5 58→65 — confusions are same-region |
 | 026 | multi-layer DINO features | negative: early-layer texture dilutes semantics (−2.9) |
+| 027 | BiomedCLIP knowledge | negative: bmc-img 36.9, zero-shot text 2.0, dino+text +0.7 (OOD) |
+| 028 | angular-margin head | SupCon +3.2 replicates; margin adds nothing (−0.3 vs m=0) |
+| 029 | local-orientation/texture | orient-only 11.2; fusion only hurts (−4 to −12) |
+| 030 | multi-prototype / soft agg. | exemplar-max best; smoothing monotonically hurts |
+| 031 | DINO ⊕ BiomedCLIP ensemble | marginal +1.0 but 5/10 — not complementary |
 
 ---
 
@@ -202,6 +207,22 @@ accuracy in the top 5–20% of confidence). In the best setting (exp 014): **con
   context. This is the cheap, training-free foundation of the relational expert; its negativity, with
   the learned-pooler overfit, suggests a *trained* R-GCN would also overfit at this data scale rather
   than break the appearance ceiling.
+- **Idea-menu sweep, five orthogonal angles (exp 027–031):** a deliberate batch of diverse,
+  task-tailored attempts, each 10-seed paired. **(027) Medical vision-language knowledge** —
+  BiomedCLIP image features are weaker than DINO (36.9 vs 46.6) and its zero-shot text↔crop alignment
+  collapses to near-chance (2.0); even an oracle-λ knowledge prior adds <1 pp. Dissection photos are
+  OOD for a model trained on published figures. **(028) Angular margin** — adding an ArcFace-style
+  `cos(θ+m)` margin to the (helpful) SupCon head gives nothing (best −0.3 vs m=0, margin monotonically
+  hurts): the look-alike boundary is not loss-underdetermined, the information is absent. **(029) Local
+  texture** — a hand-built multi-scale orientation/structure-tensor descriptor at the pin is weakly
+  discriminative alone (top1 11.2, ≈24× chance) but, fused with DINO, only adds noise (−4 to −12 pp);
+  DINO already subsumes the grain. **(030) Aggregation** — accuracy rises monotonically as the
+  per-class aggregator moves from mean (38.8) through k-means sub-prototypes toward exemplar-max
+  (46.6); any smoothing destroys the few surviving details. **(031) Diverse-backbone ensemble** —
+  fusing DINO with BiomedCLIP-image is marginal and inconsistent (+1.0 but 5/10 seeds); the weaker OOD
+  member is not complementary enough to correct DINO's errors. Five independent levers — external
+  knowledge, loss geometry, hand texture, prototype shape, backbone diversity — all fail to move top1
+  beyond seed noise, triangulating the same data ceiling from five new directions.
 
 ### 6.5 What did work (modestly)
 **Learned discriminative head (SupCon linear, exp 012):** a low-capacity head on the frozen embedding
@@ -303,4 +324,4 @@ ultimate goal (real deployment):
 - Every experiment is logged under `experiments/NNN-*/` with a report, figures, and `metrics.json`.
   Figures containing cadaver imagery are saved as `*.private.png` and git-ignored.
 
-*Document version: `data-pivot`. Backbone scaling (exp 019) complete; §6.9/§7 reflect final numbers.*
+*Document version: `data-pivot`. Through exp 031 (idea-menu sweep: knowledge/loss/texture/aggregation/ensemble — all negative); model-side levers exhausted across nine phases, ceiling is data-bound.*

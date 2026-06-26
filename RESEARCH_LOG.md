@@ -454,3 +454,120 @@ structured/relational model.
 - **Conclusion:** Negative — early-layer texture is generic/noisy and dilutes the
   strong semantic last-layer features. Last-layer-only is best for retrieval.
 - **Reproduce:** `scripts/multilayer.py`.
+
+---
+
+## Phase 9 — Idea-menu sweep: knowledge, loss, texture, aggregation, ensemble
+
+Motivation: the user asked for a batch of *diverse, task-tailored* attempts beyond
+appearance/pooling/context. Five orthogonal angles, each a cheap probe, each
+10-seed paired against the canonical exemplar baseline (top1 46.6±3.6 on ≥2 core).
+Every one is a **negative**, but each kills a different hypothesis — together they
+triangulate the same ceiling from five new directions.
+
+### 027 — BiomedCLIP (vision-language anatomical knowledge)
+- **When:** 2026-06-27.
+- **Why:** Same-region look-alikes (artery vs vein) may be separable not by more
+  appearance but by *anatomical knowledge*. BiomedCLIP (medical CLIP, image+text,
+  PubMed-pretrained) carries that knowledge in its text encoder — a signal DINO has
+  no access to. Hypothesis: a knowledge prior re-ranks appearance ties correctly.
+- **What & How:** On a pin-centred crop, four methods — (a) DINO exemplar 1-NN
+  (baseline), (b) BiomedCLIP-image exemplar 1-NN, (c) zero-shot text ("a dissection
+  photo of a {class}") vs crop, (d) `score = sim_dino + λ·sim_text` with per-seed
+  best λ∈{.3,.6,1} (an optimistic UPPER bound on the knowledge signal). 10 seeds.
+- **Where:** ≥2 core, 601/215.
+- **Result:** dino 46.6 / **bmc-img 36.9** / **bmc-text 2.0** (≈4× the 0.47% random
+  floor but useless) / **dino+textλ 47.3** (+0.7, and that is the *tuned upper bound*).
+- **Conclusion:** Negative. BiomedCLIP is trained on published figures, so dissection
+  photos are OOD for it — its image features are markedly weaker than DINO and its
+  text↔crop alignment collapses to near-chance. Even an oracle-λ knowledge prior buys
+  <1 point. The missing information is not "knowledge the text encoder has"; it is
+  not present in these images at all. Reconfirms the data ceiling from the knowledge
+  angle. (Note: random page captions were NOT used; only class-name prompts.)
+- **Reproduce:** `scripts/biomedclip.py`.
+
+### 028 — Angular-margin head (ArcFace-style, contrastive)
+- **When:** 2026-06-27.
+- **Why:** The SupCon head helped (+~3) by clustering same-structure embeddings, but
+  plain SupCon enforces no *margin* — positives need only beat negatives, not beat
+  them by a gap. A hard additive angular margin `cos(θ+m)` on positives should carve
+  a cleaner boundary between fine look-alikes IF the boundary is loss-underdetermined.
+- **What & How:** Add an additive angular margin to the positive terms inside the
+  supervised-contrastive objective (ArcFace's cos(θ+m), applied contrastively so it
+  stays few-shot compatible — no fixed classifier weights). m=0 reproduces plain
+  SupCon → clean paired ablation. Retrain head per seed; exemplar 1-NN in learned
+  space; 10 seeds; m∈{0, .1, .2, .3}.
+- **Where:** ≥2 core.
+- **Result:** frozen 46.6 → **m0 (SupCon) 49.8** (+3.2, replicates the head gain) →
+  m.1 49.5, m.2 49.3, m.3 48.7. Best-vs-m0 Δ−0.3 (2/10). Margin monotonically *hurts*
+  as it grows.
+- **Conclusion:** Negative for the margin. The head's clustering is the lever; adding
+  a harder margin gives nothing because the classes it must separate are not separable
+  by a sharper decision surface — the discriminating information is absent, not just
+  un-margined. The loss *shape* is not the bottleneck; the data is.
+- **Reproduce:** `scripts/arcface_head.py`.
+
+### 029 — Local-orientation / texture descriptor at the pin (fibre grain)
+- **When:** 2026-06-27.
+- **Why:** DINO's semantic features wash out micro-texture, but anatomical "grain" is
+  locally discriminative: vessel wall (smooth) vs nerve (striated cable) vs muscle
+  (anisotropic fibre). A hand-built descriptor might re-inject what DINO discards.
+- **What & How:** On a grayscale patch at the pin, compute a multi-scale (r=24,48)
+  HOG-style orientation histogram (gradient angle mod 180°, magnitude-weighted, 9
+  bins) + structure-tensor coherence/anisotropy + dominant-orientation (cos/sin 2θ);
+  24-d, L2-normalized. Fuse `score = sim_dino + λ·sim_orient` (both exemplar
+  class-max), fixed λ∈{0,.2,.4,.7,1}. Also orient-only. 10 seeds.
+- **Where:** ≥2 core.
+- **Result:** orient-only top1 **11.2±2.4** (≈24× the 0.47% floor — the grain *does*
+  carry weak signal), but every fusion λ>0 only *hurts*: λ.2 −4.0, λ.4 −7.8, λ1.0
+  −12.4 (all 0/10). top5 drops too.
+- **Conclusion:** Negative. The local grain is weakly discriminative in isolation but
+  entirely subsumed by DINO; concatenating a low-rank hand descriptor only adds noise
+  and dilutes the strong feature. A single pin-point's texture is not the missing
+  same-region signal.
+- **Reproduce:** `scripts/orientation.py`.
+
+### 030 — Multi-prototype & soft aggregation per class
+- **When:** 2026-06-27.
+- **Why:** Our rule is exemplar-max ≫ mean (mean washes out detail), but max-over-all
+  is sensitive to one noisy gallery item. Between them: k-means sub-prototypes
+  (capture multi-view modes) and a soft log-sum-exp (temperature interpolates
+  mean↔max). Does any middle ground beat plain max?
+- **What & How:** Per class, score by: mean centroid; k-means K=2/3 (max over
+  sub-centroids); exemplar (max over all); LSE τ=.1/.05 over all gallery sims. 10
+  seeds, paired vs exemplar.
+- **Where:** ≥2 core.
+- **Result:** mean 38.8 < kmeans-2 43.6 < kmeans-3 45.9 < lse-τ.05 45.2 < **exemplar
+  46.6**. Best non-exemplar Δ−0.8 (0/10). Accuracy rises *monotonically* as the
+  aggregator approaches max.
+- **Conclusion:** Negative — exemplar-max stays best, and the monotone ordering is a
+  clean re-derivation of the core lesson: with small per-class galleries (2-core), any
+  smoothing destroys the few discriminative details that survive. No aggregation lever
+  left.
+- **Reproduce:** `scripts/multiproto.py`.
+
+### 031 — Diverse-backbone ensemble (DINO ⊕ BiomedCLIP-image)
+- **When:** 2026-06-27.
+- **Why:** bmc-img (36.9) is weaker than DINO but trained on a disjoint distribution —
+  its *errors* might be complementary, so a fused score could beat either alone even
+  with one weak member (the classic ensemble argument).
+- **What & How:** `score = sim_dino + λ·sim_bmc` (both exemplar class-max), fixed
+  λ∈{0,.3,.6,1,1.5}, 10 seeds, paired vs DINO.
+- **Where:** ≥2 core.
+- **Result:** best λ=1.0 top1 47.7 (**Δ+1.0 but only 5/10 seeds win**); top5 flat
+  (58.0→58.6). Not consistent (paired bar is ≥8/10).
+- **Conclusion:** Negative/marginal. The +1 is within seed noise and not consistent —
+  the two backbones are not complementary enough on dissection photos (bmc-img is too
+  weak and OOD to correct DINO's errors). A cheap ensemble is not a real lever here.
+- **Reproduce:** `scripts/ensemble.py`.
+
+### Synthesis of Phase 9
+Five independent angles — external knowledge (027), loss geometry (028), hand
+texture (029), prototype aggregation (030), backbone diversity (031) — each fails to
+move top1 beyond seed noise. The SupCon head's +3 (replicated in 028) remains the
+only training lever, and it is a *representation* gain, not a *boundary-sharpening*
+one (margin adds nothing). Every negative points the same way: the residual
+same-region confusions carry no extra signal in the local image — not in a stronger
+backbone's features, not in medical-text knowledge, not in micro-texture, not in a
+cleverer metric. **The binding constraint is data coverage/instances, exactly as the
+scaling curve (013) showed.** Model-side ideas are now exhausted across nine phases.

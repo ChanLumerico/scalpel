@@ -27,3 +27,8 @@
 | [024-coherent-pool](024-coherent-pool/report.md) | Feature-coherent 풀링 | 2026-06-27 | best=coherent σ80 τ0.3 Δtop1 -0.2(4/10) → 효과 불명확/노이즈 |
 | [025-region-prior](025-region-prior/report.md) | 부위-조건부 사전 | 2026-06-27 | best λ=0.1 Δtop1 +0.5(6/10) → 효과 불명확 (교차-부위 혼동은 소수) |
 | [026-multilayer](026-multilayer/report.md) | 다층 DINO 특징 | 2026-06-27 | best=L2+L11 (tex+sem) Δtop1 -2.9(0/10) → 효과 불명확/노이즈 |
+| [027-biomedclip](027-biomedclip/report.md) | BiomedCLIP 지식 | 2026-06-27 | dino 46.6 | bmc-img 36.9 | bmc-text 2.0 | dino+textλ 47.3 |
+| [028-arcface-head](028-arcface-head/report.md) | 각마진 헤드 | 2026-06-27 | best m=0.1 vs-SupCon Δtop1 -0.3(2/10) → 각마진 추가 이득 없음 (SupCon로 충분) |
+| [029-orientation](029-orientation/report.md) | 국소 방향/질감 기술자 | 2026-06-27 | best λ=0.2 Δtop1 -4.0(0/10) → 방향 기술자 추가 이득 없음 | orient-only 11.2 |
+| [030-multiproto](030-multiproto/report.md) | 다중 프로토타입/soft 집계 | 2026-06-27 | best non-ex kmeans-3 Δtop1 -0.8(0/10) → exemplar-max가 여전히 최선 |
+| [031-ensemble](031-ensemble/report.md) | 다양백본 앙상블 | 2026-06-27 | best λ=1.0 Δtop1 +1.0(5/10) → 상보성 부족 — 앙상블 무효 |
