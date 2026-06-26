@@ -144,6 +144,7 @@ relational expert (R-GCN), and PoE fusion, none adopted as of this report (§6.4
 | 017 | pin noise | tolerant to ~40 px tag error (−3.5 pp) |
 | 018 | deployment operating point (premature) | 19%±11 answer rate at 90% target — not ready |
 | 019 | backbone scaling | vitb14 46.6 / vitl14 46.8 / vitg14 47.7 (marginal) |
+| 020 | structured relational context (M6' step 1) | no top1 gain (+region −3.5, +neighbor −0.4) |
 
 ---
 
@@ -184,6 +185,13 @@ accuracy in the top 5–20% of confidence). In the best setting (exp 014): **con
   paired Δtop1 **−2.3** (1/10 wins), top5 only +4.1. Attention visualization shows the Gaussian
   focuses tightly on the pin while the learned attention is diffuse (loses focus). *Low-capacity
   learning helps; high-capacity overfits.*
+- **Structured relational context (exp 020, M6' step 1):** over-segmenting each photo (k-means on
+  patch tokens) and fusing the pin-region / adjacent-region appearance into the embedding does *not*
+  help top1 either (base 46.6 → +region 43.2, +neighbor 46.2, +both 43.9; all ≤ base). Region
+  averaging dilutes the discriminative detail — the same pattern as the learned pooler and global
+  context. This is the cheap, training-free foundation of the relational expert; its negativity, with
+  the learned-pooler overfit, suggests a *trained* R-GCN would also overfit at this data scale rather
+  than break the appearance ceiling.
 
 ### 6.5 What did work (modestly)
 **Learned discriminative head (SupCon linear, exp 012):** a low-capacity head on the frozen embedding
