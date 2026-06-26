@@ -190,7 +190,19 @@ def _clean(im0: np.ndarray, boxes, blue: np.ndarray) -> np.ndarray:
     mask = cv2.dilate(mask, np.ones((5, 5), np.uint8))
     mask = cv2.bitwise_or(mask, cv2.dilate(blue, np.ones((5, 5), np.uint8)))
     bgr = cv2.cvtColor(im0, cv2.COLOR_RGB2BGR)
-    out = cv2.inpaint(bgr, mask, 5, cv2.INPAINT_TELEA)
+    # cv2.inpaint is O(pixels x mask); on big pages with a large mask (bluish
+    # images detect 10-20% "leader") it can stall for minutes. Inpaint at a
+    # capped resolution, then composite ONLY the masked pixels back at full res.
+    h, w = im0.shape[:2]
+    scale = min(1.0, 1400.0 / max(h, w))
+    if scale < 1.0:
+        sw, sh = int(w * scale), int(h * scale)
+        sm = cv2.resize(bgr, (sw, sh))
+        smask = (cv2.resize(mask, (sw, sh), interpolation=cv2.INTER_NEAREST) > 0).astype(np.uint8) * 255
+        inp = cv2.resize(cv2.inpaint(sm, smask, 3, cv2.INPAINT_TELEA), (w, h))
+        out = np.where(mask[..., None] > 0, inp, bgr)  # only masked pixels change
+    else:
+        out = cv2.inpaint(bgr, mask, 5, cv2.INPAINT_TELEA)
     return cv2.cvtColor(out, cv2.COLOR_BGR2RGB)
 
 
