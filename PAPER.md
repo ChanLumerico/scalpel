@@ -152,6 +152,7 @@ relational expert (R-GCN), and PoE fusion, none adopted as of this report (§6.4
 | 021 | singletons in gallery (A-1) | vocab ~201→448 (2.2×) at −2.9 pp top1 cost |
 | 022 | OCR-recover dropped labels (A-2) | negative: 346 dropped are genuine junk, ~0 recoverable |
 | 023 | head trained on augmentation | marginal: paired Δtop1 +1.1 (7/10) → best ~50.6 |
+| 024 | feature-coherent pooling | top1 flat (top5↑) — same pattern; DINO already structure-local |
 
 ---
 

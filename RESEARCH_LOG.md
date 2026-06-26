@@ -364,3 +364,31 @@ reporting = **10-seed mean±std** (embed once, vary split). Hardware: Apple M4 M
   over-recover wrong labels). Better OCR (upscale/denoise re-OCR) might read a few
   more but is low-yield and out of scope.
 - **Reproduce:** `scripts/recover_labels.py`.
+
+---
+
+## Phase 8 — Task-tailored theory (using the dataset's structure)
+
+### 024 — Feature-coherent pooling
+- **When:** 2026-06-27.
+- **Why:** GaussianPool blends the pinned structure with adjacent tissue (bad for
+  look-alikes). Pool by spatial × *feature-similarity to the pin patch* so the
+  embedding captures the structure (e.g. the vessel along its length), param-free.
+- **What & How:** `w_i = softmax(-d²/2σ² + cos(token_i, seed)/τ)`, wide σ so the
+  feature term selects; sweep τ; exemplar 1-NN; PAIRED vs Gaussian. 10 seeds.
+- **Where:** ≥2 core.
+- **Result:** gauss 46.6 vs coherent {τ0.1 42.7, τ0.2 44.4, τ0.3 46.4, σ120 44.8} —
+  all ≤ Gaussian on top1 (best Δ−0.2); **top5 rises (60.7)**.
+- **Conclusion:** Negative for top1 — DINO patch tokens are already structure-local,
+  so feature-coherent selection adds top5 context but no top1 discrimination. Same
+  "top5↑, top1 flat" pattern as pooling-width / context / structured-context.
+- **Reproduce:** `scripts/coherent_pool.py`.
+
+### DX3 — Is there an artery/vein colour cue?
+- **When:** 2026-06-27.
+- **Why:** The biggest confusion is artery↔vein; injected cadavers (red artery / blue
+  vein) would give a strong colour cue DINO might underuse.
+- **What & How:** Mean RGB in a window at each pin, per tissue type.
+- **Result:** artery R−B = +46, vein +33 (difference only **+13**, overlapping;
+  muscle/nerve also +52/+53). The specimens are **not strongly colour-injected**.
+- **Conclusion:** The colour cue is weak — won't cleanly separate artery from vein.
