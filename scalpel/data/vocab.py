@@ -19,6 +19,8 @@ _STATE = re.compile(r"\((?:reflected|cut|retracted|removed|partially[^)]*)\)", r
 _ABBR = {
     "m": "muscle", "a": "artery", "v": "vein", "n": "nerve", "lig": "ligament",
     "t": "tendon", "br": "branch", "gl": "gland",
+    # doubled forms are the Latin plural ("mm." = musculi = muscles)
+    "mm": "muscles", "aa": "arteries", "vv": "veins", "nn": "nerves",
 }
 
 

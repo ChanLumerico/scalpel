@@ -71,7 +71,14 @@ def build(pdf_dir: str, out_dir: str, vocab: Vocab | None = None) -> dict:
     vocab.save(out / "vocab.json")
     stats = {"pdfs": len(pdfs), "pdfs_with_triples": n_pdf_ok, "triples": n_tri,
              "images": len(saved), "vocab": len(vocab)}
-    print(f"\nDONE: {stats} -> {out}/triples.jsonl")
+    print(f"\nDONE (raw): {stats}")
+
+    # quality pass: drop OCR junk, canonicalize labels, prune orphan images, so
+    # the on-disk dataset is always the cleaned one (HANDOUT v2 §5.5).
+    from .clean import clean_dataset
+    print("\n[clean] canonicalizing labels + pruning junk ...")
+    jsonl = str(out / "triples.jsonl")
+    clean_dataset(jsonl, jsonl, tag=False, prune_images=True)
     return stats
 
 
