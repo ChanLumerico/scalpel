@@ -328,6 +328,24 @@ reporting = **10-seed mean±std** (embed once, vary split). Hardware: Apple M4 M
   bottleneck (DX1). Singleton accuracy itself remains unmeasurable (1 instance).
 - **Reproduce:** `scripts/singleton_gallery.py`.
 
+### 023 — Train the head on AUGMENTED embeddings
+- **When:** 2026-06-27.
+- **Why:** exp 016 augmented only the gallery (retrieval). The learned head (exp 012,
+  +2.6) was trained on just 601 un-augmented embeddings — data-starved. Does giving
+  it K augmented views per triple as extra training signal help?
+- **What & How:** Embed each core triple + K=4 augmented views once; per seed train
+  the SupCon head on (a) originals only vs (b) originals+augmented; project & exemplar
+  1-NN on originals; PAIRED. 10 seeds.
+- **Where:** ≥2 core.
+- **Result:** head-raw top1 49.5 → **head-aug 50.6 (paired Δ+1.1, 7/10 seeds)**,
+  Δtop5 +0.9 (6/10).
+- **Conclusion:** A small, marginal gain. Augmentation adds no new anatomical
+  diversity (same specimens), so it acts as light regularization, not a ceiling
+  breaker — consistent with exp 013 (data scale is the limit) and exp 016
+  (gallery-aug +1.5). The augmentation lever is largely tapped; best stack now
+  ~50.6 top1.
+- **Reproduce:** `scripts/aug_head.py`.
+
 ### 022 — A-2: OCR-recover dropped labels
 - **When:** 2026-06-27.
 - **Why:** Some triples were dropped as OCR junk that are actually real structures

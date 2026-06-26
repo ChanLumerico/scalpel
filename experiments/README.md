@@ -23,3 +23,4 @@
 | [020-relational-context](020-relational-context/report.md) | M6' 구조적 이웃 맥락 | 2026-06-27 | best=neighbor Δtop1 -0.4(4/10) → 구조적 맥락도 top1 무효 → 데이터/학습이 레버 |
 | [021-singleton-gallery](021-singleton-gallery/report.md) | 싱글톤 갤러리 포함 | 2026-06-27 | vocab 201→448, core top1 45.2→42.3 (Δ-2.9) |
 | [022-recover-labels](022-recover-labels/report.md) | OCR 드롭 라벨 복구 후보 | 2026-06-27 | dropped 346 tri; recoverable candidates 1 labels / 1 triples (>= 90 sim, needs manual verify) |
+| [023-aug-head](023-aug-head/report.md) | 증강 임베딩으로 헤드 학습 | 2026-06-27 | head-raw 49.5 vs head-aug 50.6 | paired Δtop1 1.1(7/10) → 효과 불명확 (증강은 새 다양성 없음) |

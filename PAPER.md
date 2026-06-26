@@ -151,6 +151,7 @@ relational expert (R-GCN), and PoE fusion, none adopted as of this report (§6.4
 | 020 | structured relational context (M6' step 1) | no top1 gain (+region −3.5, +neighbor −0.4) |
 | 021 | singletons in gallery (A-1) | vocab ~201→448 (2.2×) at −2.9 pp top1 cost |
 | 022 | OCR-recover dropped labels (A-2) | negative: 346 dropped are genuine junk, ~0 recoverable |
+| 023 | head trained on augmentation | marginal: paired Δtop1 +1.1 (7/10) → best ~50.6 |
 
 ---
 
