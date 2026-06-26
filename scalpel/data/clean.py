@@ -46,67 +46,267 @@ _VOWEL = re.compile(r"[aeiou]")
 # suffix and aren't multi-token (so "tibia", "uvula" are kept, "peel", "made" not)
 _STRUCTURES = {
     # bones
-    "tibia", "fibula", "femur", "humerus", "radius", "ulna", "mandible",
-    "maxilla", "scapula", "clavicle", "sternum", "patella", "talus", "calcaneus",
-    "navicular", "cuboid", "sacrum", "coccyx", "atlas", "axis", "vomer",
-    "ethmoid", "sphenoid", "occiput", "zygomatic", "hyoid", "manubrium",
-    "ilium", "ischium", "pubis", "acetabulum", "rib", "ribs", "vertebra",
-    "phalanx", "phalanges", "metacarpal", "metatarsal", "carpals", "tarsals",
+    "tibia",
+    "fibula",
+    "femur",
+    "humerus",
+    "radius",
+    "ulna",
+    "mandible",
+    "maxilla",
+    "scapula",
+    "clavicle",
+    "sternum",
+    "patella",
+    "talus",
+    "calcaneus",
+    "navicular",
+    "cuboid",
+    "sacrum",
+    "coccyx",
+    "atlas",
+    "axis",
+    "vomer",
+    "ethmoid",
+    "sphenoid",
+    "occiput",
+    "zygomatic",
+    "hyoid",
+    "manubrium",
+    "ilium",
+    "ischium",
+    "pubis",
+    "acetabulum",
+    "rib",
+    "ribs",
+    "vertebra",
+    "phalanx",
+    "phalanges",
+    "metacarpal",
+    "metatarsal",
+    "carpals",
+    "tarsals",
     # viscera / organs
-    "liver", "spleen", "pancreas", "stomach", "kidney", "bladder", "uterus",
-    "ovary", "prostate", "testis", "thymus", "thyroid", "tonsil", "tonsils",
-    "appendix", "cecum", "duodenum", "jejunum", "ileum", "colon", "rectum",
-    "esophagus", "trachea", "larynx", "pharynx", "epiglottis", "diaphragm",
-    "lung", "lungs", "heart", "brain", "gallbladder", "ureter", "urethra",
-    "spleen", "tongue",
+    "liver",
+    "spleen",
+    "pancreas",
+    "stomach",
+    "kidney",
+    "bladder",
+    "uterus",
+    "ovary",
+    "prostate",
+    "testis",
+    "thymus",
+    "thyroid",
+    "tonsil",
+    "tonsils",
+    "appendix",
+    "cecum",
+    "duodenum",
+    "jejunum",
+    "ileum",
+    "colon",
+    "rectum",
+    "esophagus",
+    "trachea",
+    "larynx",
+    "pharynx",
+    "epiglottis",
+    "diaphragm",
+    "lung",
+    "lungs",
+    "heart",
+    "brain",
+    "gallbladder",
+    "ureter",
+    "urethra",
+    "spleen",
+    "tongue",
     # brain / neuro
-    "cerebellum", "pons", "medulla", "thalamus", "hypothalamus", "hippocampus",
-    "amygdala", "cortex", "cerebrum", "midbrain", "infundibulum", "pituitary",
-    "hypophysis", "uvula",
+    "cerebellum",
+    "pons",
+    "medulla",
+    "thalamus",
+    "hypothalamus",
+    "hippocampus",
+    "amygdala",
+    "cortex",
+    "cerebrum",
+    "midbrain",
+    "infundibulum",
+    "pituitary",
+    "hypophysis",
+    "uvula",
     # eye / ear
-    "cornea", "retina", "iris", "lens", "sclera", "pupil", "cochlea", "malleus",
-    "incus", "stapes",
+    "cornea",
+    "retina",
+    "iris",
+    "lens",
+    "sclera",
+    "pupil",
+    "cochlea",
+    "malleus",
+    "incus",
+    "stapes",
     # serous membranes / misc
-    "septum", "mediastinum", "peritoneum", "pleura", "pericardium", "omentum",
-    "mesentery", "falx", "tentorium", "aorta", "esophagus",
+    "septum",
+    "mediastinum",
+    "peritoneum",
+    "pleura",
+    "pericardium",
+    "omentum",
+    "mesentery",
+    "falx",
+    "tentorium",
+    "aorta",
+    "esophagus",
 }
 
 # tissue-type suffixes: a difference in these does NOT make a different structure
 _TISSUE = {
-    "muscle", "artery", "vein", "nerve", "bone", "bones", "ligament", "tendon",
-    "gland", "joint", "duct", "sinus", "vessel", "node", "branch", "process",
+    "muscle",
+    "artery",
+    "vein",
+    "nerve",
+    "bone",
+    "bones",
+    "ligament",
+    "tendon",
+    "gland",
+    "joint",
+    "duct",
+    "sinus",
+    "vessel",
+    "node",
+    "branch",
+    "process",
 }
 # contrastive modifiers: a difference in these DOES define a different structure
 _CONTRAST = {
-    "internal", "external", "superior", "inferior", "anterior", "posterior",
-    "medial", "lateral", "deep", "superficial", "major", "minor", "greater",
-    "lesser", "proximal", "distal", "ascending", "descending", "transverse",
-    "left", "right", "l", "r", "common", "middle", "accessory", "first",
-    "second", "third", "fourth", "fifth", "1st", "2nd", "3rd", "4th", "5th",
+    "internal",
+    "external",
+    "superior",
+    "inferior",
+    "anterior",
+    "posterior",
+    "medial",
+    "lateral",
+    "deep",
+    "superficial",
+    "major",
+    "minor",
+    "greater",
+    "lesser",
+    "proximal",
+    "distal",
+    "ascending",
+    "descending",
+    "transverse",
+    "left",
+    "right",
+    "l",
+    "r",
+    "common",
+    "middle",
+    "accessory",
+    "first",
+    "second",
+    "third",
+    "fourth",
+    "fifth",
+    "1st",
+    "2nd",
+    "3rd",
+    "4th",
+    "5th",
     # Latin size/depth/length modifiers - each names a distinct structure
-    "maximus", "minimus", "medius", "longus", "brevis", "magnus", "profundus",
-    "superficialis", "externus", "internus",
+    "maximus",
+    "minimus",
+    "medius",
+    "longus",
+    "brevis",
+    "magnus",
+    "profundus",
+    "superficialis",
+    "externus",
+    "internus",
 }
 # curated anatomy terms that are real but often appear only once (so the df>=2
 # self-lexicon misses them) and are NOT in the English system dictionary
 _ANATOMY_LEX = {
-    "omohyoid", "mylohyoid", "stylohyoid", "geniohyoid", "thyrohyoid",
-    "sternohyoid", "sternothyroid", "thyroarytenoid", "cricothyroid",
-    "cricoarytenoid", "digastric", "buccinator", "mentalis", "masseter",
-    "platysma", "digitorum", "hallucis", "pollicis", "indicis", "iliac",
-    "epicondyle", "condyle", "malleolus", "trochanter", "tuberosity",
-    "infraspinatus", "supraspinatus", "subscapularis", "teres", "deltoid",
-    "trapezius", "rhomboid", "scalene", "splenius", "semispinalis",
+    "omohyoid",
+    "mylohyoid",
+    "stylohyoid",
+    "geniohyoid",
+    "thyrohyoid",
+    "sternohyoid",
+    "sternothyroid",
+    "thyroarytenoid",
+    "cricothyroid",
+    "cricoarytenoid",
+    "digastric",
+    "buccinator",
+    "mentalis",
+    "masseter",
+    "platysma",
+    "digitorum",
+    "hallucis",
+    "pollicis",
+    "indicis",
+    "iliac",
+    "epicondyle",
+    "condyle",
+    "malleolus",
+    "trochanter",
+    "tuberosity",
+    "infraspinatus",
+    "supraspinatus",
+    "subscapularis",
+    "teres",
+    "deltoid",
+    "trapezius",
+    "rhomboid",
+    "scalene",
+    "splenius",
+    "semispinalis",
 }
-_LEVEL = re.compile(r"^(?:c|t|l|s|cn)?\d+$")      # c5, t1, l4, s3, 12
+_LEVEL = re.compile(r"^(?:c|t|l|s|cn)?\d+$")  # c5, t1, l4, s3, 12
 _ROMAN = {"i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x", "xi", "xii"}
 # bare category words: a label that is ONLY one of these (no specifier) is a
 # truncated OCR read ("...artery" with the name lost), not an identifiable class
 _GENERIC_SOLO = _TISSUE | {
-    "body", "head", "neck", "trunk", "root", "horn", "lobe", "wall", "cavity",
-    "membrane", "cord", "fold", "arch", "crest", "notch", "spine", "angle",
-    "border", "margin", "surface", "ramus", "branch", "sheath", "fossa",
-    "process", "tubercle", "tuberosity", "canal", "foramen", "groove", "sulcus",
+    "body",
+    "head",
+    "neck",
+    "trunk",
+    "root",
+    "horn",
+    "lobe",
+    "wall",
+    "cavity",
+    "membrane",
+    "cord",
+    "fold",
+    "arch",
+    "crest",
+    "notch",
+    "spine",
+    "angle",
+    "border",
+    "margin",
+    "surface",
+    "ramus",
+    "branch",
+    "sheath",
+    "fossa",
+    "process",
+    "tubercle",
+    "tuberosity",
+    "canal",
+    "foramen",
+    "groove",
+    "sulcus",
 }
 
 
@@ -124,11 +324,11 @@ def _safe_merge(a: str, b: str, real: set, pair_thresh: int = 80) -> bool:
     a_only, b_only = sa - sb, sb - sa
     avail = list(b_only)
     leftover = []
-    for x in a_only:                                   # greedily OCR-pair a->b
+    for x in a_only:  # greedily OCR-pair a->b
         hit = None
         for i, y in enumerate(avail):
-            if x in real and y in real:                # two distinct real words ->
-                continue                               # a genuine difference, not a typo
+            if x in real and y in real:  # two distinct real words ->
+                continue  # a genuine difference, not a typo
             if max(fuzz.ratio(x, y), fuzz.token_sort_ratio(x, y)) >= pair_thresh:
                 hit = i
                 break
@@ -151,13 +351,13 @@ def is_valid(label: str) -> bool:
     toks = label.split()
     if len(label) < 4 or not _VOWEL.search(label):
         return False
-    if all(len(t) < 3 for t in toks):                 # only tiny tokens -> junk
+    if all(len(t) < 3 for t in toks):  # only tiny tokens -> junk
         return False
-    if len(toks) == 1 and toks[0] in _GENERIC_SOLO:   # bare "artery"/"body" -> truncated
+    if len(toks) == 1 and toks[0] in _GENERIC_SOLO:  # bare "artery"/"body" -> truncated
         return False
-    if _ANAT.search(label):                           # has an anatomy keyword
+    if _ANAT.search(label):  # has an anatomy keyword
         return True
-    if len(toks) == 1:                                # single word -> must be a known structure
+    if len(toks) == 1:  # single word -> must be a known structure
         return toks[0] in _STRUCTURES or toks[0] in _ANATOMY_LEX
     # otherwise require >=2 alphabetic tokens, each with a vowel (a proper name)
     alpha = [t for t in toks if re.fullmatch(r"[a-z]+", t) and _VOWEL.search(t)]
@@ -179,10 +379,15 @@ def canonicalize(counts: dict, thresh: int = 90, seed=()):
     for lab in counts:
         if is_valid(lab):
             tok_df.update(set(lab.split()))
-    real = {t for t, df in tok_df.items() if df >= 2} | _CONTRAST | _ANATOMY_LEX | _STRUCTURES
-    try:                                            # macOS/Linux system word list
+    real = (
+        {t for t, df in tok_df.items() if df >= 2}
+        | _CONTRAST
+        | _ANATOMY_LEX
+        | _STRUCTURES
+    )
+    try:  # macOS/Linux system word list
         words = Path("/usr/share/dict/words").read_text().lower().split()
-        real |= {w for w in words if len(w) >= 4}   # skip 1-3 char noise words
+        real |= {w for w in words if len(w) >= 4}  # skip 1-3 char noise words
     except OSError:
         pass
 
@@ -196,10 +401,14 @@ def canonicalize(counts: dict, thresh: int = 90, seed=()):
             continue
         if canon:
             # best match under token-sort and plain edit ratio (take the higher)
-            cands = [m for m in (
-                process.extractOne(lab, canon, scorer=fuzz.token_sort_ratio),
-                process.extractOne(lab, canon, scorer=fuzz.ratio),
-            ) if m]
+            cands = [
+                m
+                for m in (
+                    process.extractOne(lab, canon, scorer=fuzz.token_sort_ratio),
+                    process.extractOne(lab, canon, scorer=fuzz.ratio),
+                )
+                if m
+            ]
             m = max(cands, key=lambda x: x[1], default=None)
             if m and m[1] >= thresh and _safe_merge(lab, m[0], real):
                 mapping[lab] = m[0]
@@ -223,22 +432,33 @@ def modality(img_path) -> str:
     h, s, v = hsv[..., 0], hsv[..., 1], hsv[..., 2]
     sat, val = float(s.mean()), float(v.mean())
     gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-    tex = float(cv2.Laplacian(gray, cv2.CV_64F).var())   # texture energy (smoothness)
+    tex = float(cv2.Laplacian(gray, cv2.CV_64F).var())  # texture energy (smoothness)
     # pink/salmon 3D-render hue (OpenCV H 0-179: magenta~150, red wraps 0/179)
     pink = float((((h > 145) | (h < 8)) & (s > 60) & (v > 120)).mean())
     if val > 190 and sat < 35:
-        return "bone"                                    # bright, desaturated specimen
-    if pink > 0.4 and tex < 250:                         # vivid pink + smooth -> render
+        return "bone"  # bright, desaturated specimen
+    if pink > 0.4 and tex < 250:  # vivid pink + smooth -> render
         return "model"
     return "cadaver"
 
 
-def clean_dataset(in_jsonl: str, out_jsonl: str, thresh: int = 90, tag: bool = True,
-                  prune_images: bool = False):
+def clean_dataset(
+    in_jsonl: str,
+    out_jsonl: str,
+    thresh: int = 90,
+    tag: bool = True,
+    prune_images: bool = False,
+):
+    from .label_overrides import OVERRIDES
+
     rows = [json.loads(l) for l in open(in_jsonl, encoding="utf-8") if l.strip()]
-    for r in rows:                                     # apply the latest vocab
-        r["label_raw"] = r["label"]                    # (nn->nerves, m->muscle, ...)
-        r["label"] = Vocab.normalize(r["label"])
+    for r in rows:  # apply the latest vocab + hand-reviewed OCR corrections
+        r["label_raw"] = r["label"]  # (nn->nerves, m->muscle, ...)
+        lab = Vocab.normalize(r["label"])
+        if lab in OVERRIDES:                 # reviewed fix, or None -> drop
+            ov = OVERRIDES[lab]
+            lab = ov if ov is not None else ""   # "" fails is_valid -> dropped
+        r["label"] = lab
     counts = collections.Counter(r["label"] for r in rows)
     mapping, merges = canonicalize(dict(counts), thresh)
 
@@ -249,7 +469,7 @@ def clean_dataset(in_jsonl: str, out_jsonl: str, thresh: int = 90, tag: bool = T
     with open(out_jsonl, "w", encoding="utf-8") as f:
         for r in rows:
             canon = mapping.get(r["label"], "")
-            if not canon:                                # dropped junk
+            if not canon:  # dropped junk
                 continue
             r = dict(r)
             r["label"] = canon
@@ -267,8 +487,10 @@ def clean_dataset(in_jsonl: str, out_jsonl: str, thresh: int = 90, tag: bool = T
     pruned = 0
     if prune_images:
         base = Path(out_jsonl).parent
-        keep = {Path(r["image"]).name
-                for r in (json.loads(l) for l in open(out_jsonl, encoding="utf-8"))}
+        keep = {
+            Path(r["image"]).name
+            for r in (json.loads(l) for l in open(out_jsonl, encoding="utf-8"))
+        }
         imgdir = base / "images"
         if imgdir.is_dir():
             for f in imgdir.glob("*.png"):
@@ -291,8 +513,10 @@ def clean_dataset(in_jsonl: str, out_jsonl: str, thresh: int = 90, tag: bool = T
     print(f"clean:   {kept} triples, {nc} classes")
     if prune_images:
         print(f"pruned:  {pruned} orphan images (page had only junk labels)")
-    print(f"  evaluable core (>=2 inst): {nge2} classes / {ncov} triples "
-          f"(was {sum(1 for v in counts.values() if v >= 2)} classes)")
+    print(
+        f"  evaluable core (>=2 inst): {nge2} classes / {ncov} triples "
+        f"(was {sum(1 for v in counts.values() if v >= 2)} classes)"
+    )
     if tag:
         md = collections.Counter(r.get("modality") for r in new_rows)
         print(f"  modality: {dict(md)}")
@@ -308,8 +532,11 @@ def main() -> int:
     ap.add_argument("--out", default="data/triples/triples.clean.jsonl")
     ap.add_argument("--thresh", type=int, default=90)
     ap.add_argument("--no-tag", action="store_true")
-    ap.add_argument("--prune", action="store_true",
-                    help="delete orphan images (pages with no surviving triple)")
+    ap.add_argument(
+        "--prune",
+        action="store_true",
+        help="delete orphan images (pages with no surviving triple)",
+    )
     a = ap.parse_args()
     clean_dataset(a.inp, a.out, a.thresh, tag=not a.no_tag, prune_images=a.prune)
     return 0
