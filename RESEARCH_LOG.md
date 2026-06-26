@@ -418,3 +418,26 @@ is set by **same-region fine-grained discrimination** that frozen appearance fea
 deployable form is therefore **top-k + calibrated abstention** (improvable — region
 prior raises top5 to ~65%), while raising top-1 needs more data or a non-overfitting
 structured/relational model.
+
+### DX4 — SAM point-prompted segmentation (does masking help?)
+- **When:** 2026-06-27.
+- **Why:** Idea: SAM is *point-prompted* (matches our pin q) — `SAM(I,q)` could give
+  the pinned structure's mask → sharp mask-pooled features + shape descriptors,
+  fixing the "pool the structure not the surrounding" problem that DINO-coherent
+  pooling (024) couldn't.
+- **What & How:** Installed `segment-anything` (vit_b), point-prompted at q on
+  diverse pins (deltoid, basilar artery, liver, facial/femoral structures), inspected
+  all 3 granularity masks.
+- **Where:** Sample core triples (visual).
+- **Result:** Masks are either the **whole visually-coherent region** (deltoid → the
+  entire shoulder block 53%; basilar artery → the whole brain base 61%) or a **tiny
+  color patch** (trapezius 0.2%, facial artery near-0). No granularity isolates the
+  anatomical structure.
+- **Conclusion:** **Negative — SAM segments *visual* boundaries, but in a dissection
+  anatomical boundaries are often NOT visual** (adjacent muscles share colour, vessels
+  are embedded in fat). So SAM can't isolate internal structures — the same reason
+  look-alikes are hard. Mask-pooling over a whole-region mask would be *worse* than
+  the Gaussian. A bigger SAM (vit_h) or MedSAM (radiology-tuned) wouldn't fix the
+  visual≠anatomical mismatch. The "use segmentation" idea is sound in principle but no
+  off-the-shelf segmenter fits soft-tissue dissection; the only true anatomical
+  segmentation available (BlueLink color-seg) is osteology.
