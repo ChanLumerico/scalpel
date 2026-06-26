@@ -1,0 +1,21 @@
+{
+  "title": "학습형 풀러 vs GaussianPool",
+  "date": "2026-06-27",
+  "headline": "gauss 46.6 vs learned 44.4 | paired Δtop1 -2.3(1/10) Δtop5 4.1(10/10) → 효과 불명확/노이즈",
+  "gauss_top1": [
+    46.6,
+    3.6
+  ],
+  "learned_top1": [
+    44.4,
+    4.2
+  ],
+  "gauss_top5": [
+    58.0,
+    4.4
+  ],
+  "learned_top5": [
+    62.1,
+    4.0
+  ]
+}

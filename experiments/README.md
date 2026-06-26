@@ -15,3 +15,4 @@
 | [012-learned-head](012-learned-head/report.md) | 학습형 판별 헤드 (첫 학습) | 2026-06-26 | learned top1 49.2 vs frozen 46.6 | paired Δtop1 +2.6(9/10) Δtop5 +7.8(10/10) → 학습이 일관되게 도움 (paired) |
 | [013-learning-curve](013-learning-curve/report.md) | 데이터 스케일링 곡선 | 2026-06-26 | top1 39.1→46.6% as gallery 25→100%; last-25% Δ1.4 → 데이터가 레버 — 100%에서도 top1 상승 중 (더 모으면 오름) |
 | [014-best-setting](014-best-setting/report.md) | 최고 세팅 최종 성능 | 2026-06-27 | top1 49.2±4.3% / top5 65.8±3.9% @cov83.2% | 확신30% 87.6% | ECE 0.3 |
+| [015-learned-pooler](015-learned-pooler/report.md) | 학습형 풀러 vs GaussianPool | 2026-06-27 | gauss 46.6 vs learned 44.4 | paired Δtop1 -2.3(1/10) Δtop5 4.1(10/10) → 효과 불명확/노이즈 |
