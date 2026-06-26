@@ -1,0 +1,37 @@
+{
+  "title": "점 풀링 애블레이션",
+  "date": "2026-06-26",
+  "headline": "best=sigma10 top1 41.2±5.0% (σ40=38.8%)",
+  "configs": {
+    "bilinear": {
+      "top1": 39.2,
+      "top1_std": 4.8,
+      "top5": 51.3
+    },
+    "sigma10": {
+      "top1": 41.2,
+      "top1_std": 5.0,
+      "top5": 54.4
+    },
+    "sigma20": {
+      "top1": 40.2,
+      "top1_std": 3.5,
+      "top5": 55.5
+    },
+    "sigma40": {
+      "top1": 38.8,
+      "top1_std": 3.4,
+      "top5": 55.8
+    },
+    "sigma60": {
+      "top1": 38.9,
+      "top1_std": 2.8,
+      "top5": 57.3
+    },
+    "sigma80": {
+      "top1": 38.6,
+      "top1_std": 2.6,
+      "top5": 59.3
+    }
+  }
+}
