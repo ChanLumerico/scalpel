@@ -154,6 +154,7 @@ relational expert (R-GCN), and PoE fusion, none adopted as of this report (§6.4
 | 023 | head trained on augmentation | marginal: paired Δtop1 +1.1 (7/10) → best ~50.6 |
 | 024 | feature-coherent pooling | top1 flat (top5↑) — same pattern; DINO already structure-local |
 | 025 | region-conditioned prior | top1 +0.5 (marginal), top5 58→65 — confusions are same-region |
+| 026 | multi-layer DINO features | negative: early-layer texture dilutes semantics (−2.9) |
 
 ---
 

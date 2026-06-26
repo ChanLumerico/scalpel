@@ -441,3 +441,16 @@ structured/relational model.
   visual≠anatomical mismatch. The "use segmentation" idea is sound in principle but no
   off-the-shelf segmenter fits soft-tissue dissection; the only true anatomical
   segmentation available (BlueLink color-seg) is osteology.
+
+### 026 — Multi-layer DINO features
+- **When:** 2026-06-27.
+- **Why:** Only the last (semantic) DINO layer is pooled; early layers carry texture
+  (vessel-wall striation, fibre direction) that might separate same-region look-alikes.
+- **What & How:** Pool several layer-sets at the pin (via `get_intermediate_layers`),
+  concat, exemplar 1-NN; PAIRED vs last-layer. 10 seeds.
+- **Where:** ≥2 core.
+- **Result:** last(L11) 46.6 → all multi-layer sets WORSE (L8+L11 43.6, L2+L5+L8+L11
+  42.4, L2+L11 43.8; best Δ−2.9, 0/10); top5 also drops.
+- **Conclusion:** Negative — early-layer texture is generic/noisy and dilutes the
+  strong semantic last-layer features. Last-layer-only is best for retrieval.
+- **Reproduce:** `scripts/multilayer.py`.
