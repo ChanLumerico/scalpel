@@ -30,9 +30,9 @@ _BLUE_HI = (135, 255, 255)
 
 @dataclass
 class Triple:
-    image: np.ndarray            # clean_I (H, W, 3) uint8 -- answer/leader removed
-    q: tuple[int, int]           # pin (x, y) in Im0 pixels
-    label: str                   # normalized structure name
+    image: np.ndarray  # clean_I (H, W, 3) uint8 -- answer/leader removed
+    q: tuple[int, int]  # pin (x, y) in Im0 pixels
+    label: str  # normalized structure name
     page: int
     src: str
 
@@ -52,7 +52,7 @@ def _page_image(page) -> tuple[np.ndarray, tuple[float, float, float, float]]:
     if not imgs:
         raise ValueError(f"page {page.number}: no image")
     # the dissection photo is by far the largest image on the page
-    xref = max(imgs, key=lambda im: im[2] * im[3])[0]     # im[2],im[3] = w,h
+    xref = max(imgs, key=lambda im: im[2] * im[3])[0]  # im[2],im[3] = w,h
     raw = page.parent.extract_image(xref)["image"]
     arr = cv2.imdecode(np.frombuffer(raw, np.uint8), cv2.IMREAD_COLOR)
     arr = cv2.cvtColor(arr, cv2.COLOR_BGR2RGB)
@@ -92,6 +92,7 @@ def _pdf_rect_to_px(rect, place, wh) -> tuple[int, int, int, int]:
 # --------------------------------------------------------------------------- #
 def _blue_mask(im0: np.ndarray) -> np.ndarray:
     import cv2
+
     hsv = cv2.cvtColor(im0, cv2.COLOR_RGB2HSV)
     return cv2.inRange(hsv, np.array(_BLUE_LO), np.array(_BLUE_HI))
 
@@ -113,7 +114,7 @@ def _leader_pin(im0: np.ndarray, leader_blue: np.ndarray, box) -> tuple[int, int
     lbl, n = ndi.label(leader_blue > 0)
     if n == 0:
         return int(bx), int(by)
-    best, bestd = None, 1e18                              # component nearest the box
+    best, bestd = None, 1e18  # component nearest the box
     for i in range(1, n + 1):
         ys, xs = np.where(lbl == i)
         d = ((xs - bx) ** 2 + (ys - by) ** 2).min()
@@ -123,7 +124,7 @@ def _leader_pin(im0: np.ndarray, leader_blue: np.ndarray, box) -> tuple[int, int
     pts = np.stack([xs, ys], 1).astype(np.int32)
     hull_area = cv2.contourArea(cv2.convexHull(pts)) if xs.size >= 3 else 0.0
     enclosed = hull_area > 40 * 40 and xs.size / (hull_area + 1.0) < 0.08
-    if enclosed:                                          # dashed outline -> region centroid
+    if enclosed:  # dashed outline -> region centroid
         return int(xs.mean()), int(ys.mean())
     far = int(np.argmax((xs - bx) ** 2 + (ys - by) ** 2))  # solid -> tissue endpoint
     return int(xs[far]), int(ys[far])
@@ -136,12 +137,12 @@ def _pull_inward(im0: np.ndarray, q, k: int = 9) -> tuple[int, int]:
 
     x, y = q
     H, W = im0.shape[:2]
-    patch = im0[max(0, y - 40):y + 40, max(0, x - 40):x + 40]
+    patch = im0[max(0, y - 40) : y + 40, max(0, x - 40) : x + 40]
     if patch.size == 0:
         return int(x), int(y)
     # local region = pixels similar to q's colour; erode and take nearest interior
     ref = im0[min(H - 1, y), min(W - 1, x)].astype(int)
-    sim = (np.abs(patch.astype(int) - ref).sum(-1) < 60)
+    sim = np.abs(patch.astype(int) - ref).sum(-1) < 60
     er = ndi.binary_erosion(sim, iterations=k)
     if er.any():
         yy, xx = np.where(er)
@@ -151,15 +152,41 @@ def _pull_inward(im0: np.ndarray, q, k: int = 9) -> tuple[int, int]:
     return int(x), int(y)
 
 
+def _snap_to_tissue(crop: np.ndarray, q, radius: int = 70, thr: int = 35):
+    """Ensure the pin sits on tissue, not a black gap/background (§8.1).
+
+    Many leaders end in a dark gap between structures; pooling DINO features there
+    is meaningless. If q is on (near-)black, snap to the nearest tissue pixel
+    within ``radius``; if there's no tissue nearby, return ``None`` so the caller
+    drops the triple (a pin we can't trust to a structure is worse than no pin).
+    """
+    import cv2
+
+    h, w = crop.shape[:2]
+    x, y = int(q[0]), int(q[1])
+    val = crop.max(2).astype(np.uint8)               # brightness ~ max channel
+    tissue = cv2.blur(val, (7, 7)) > thr             # smoothed -> ignore specks
+    if 0 <= y < h and 0 <= x < w and tissue[y, x]:
+        return x, y
+    y0, y1 = max(0, y - radius), min(h, y + radius)
+    x0, x1 = max(0, x - radius), min(w, x + radius)
+    ys, xs = np.where(tissue[y0:y1, x0:x1])
+    if ys.size == 0:
+        return None                                  # no tissue nearby -> drop
+    j = int(np.argmin((xs + x0 - x) ** 2 + (ys + y0 - y) ** 2))
+    return int(xs[j] + x0), int(ys[j] + y0)
+
+
 # --------------------------------------------------------------------------- #
 # clean image                                                                 #
 # --------------------------------------------------------------------------- #
 def _clean(im0: np.ndarray, boxes, blue: np.ndarray) -> np.ndarray:
     """Inpaint label boxes + leader lines so no answer text/leader leaks (§8.1)."""
     import cv2
+
     mask = np.zeros(im0.shape[:2], np.uint8)
     for x0, y0, x1, y1 in boxes:
-        mask[max(0, y0):y1, max(0, x0):x1] = 255
+        mask[max(0, y0) : y1, max(0, x0) : x1] = 255
     mask = cv2.dilate(mask, np.ones((5, 5), np.uint8))
     mask = cv2.bitwise_or(mask, cv2.dilate(blue, np.ones((5, 5), np.uint8)))
     bgr = cv2.cvtColor(im0, cv2.COLOR_RGB2BGR)
@@ -169,6 +196,7 @@ def _clean(im0: np.ndarray, boxes, blue: np.ndarray) -> np.ndarray:
 
 def _ocr(crop: np.ndarray) -> str:
     import pytesseract
+
     return pytesseract.image_to_string(crop, config="--psm 7").strip()
 
 
@@ -189,12 +217,16 @@ def _photo_bbox(img: np.ndarray) -> tuple[int, int, int, int]:
     lbl, n = ndi.label(mask > 0)
     if n == 0:
         return 0, 0, img.shape[1], img.shape[0]
-    big = int(np.argmax(np.bincount(lbl.ravel())[1:])) + 1   # largest tissue blob
+    big = int(np.argmax(np.bincount(lbl.ravel())[1:])) + 1  # largest tissue blob
     ys, xs = np.where(lbl == big)
     H, W = img.shape[:2]
-    m = int(0.02 * max(np.ptp(xs), np.ptp(ys)))              # small margin
-    return (max(0, int(xs.min()) - m), max(0, int(ys.min()) - m),
-            min(W, int(xs.max()) + 1 + m), min(H, int(ys.max()) + 1 + m))
+    m = int(0.02 * max(np.ptp(xs), np.ptp(ys)))  # small margin
+    return (
+        max(0, int(xs.min()) - m),
+        max(0, int(ys.min()) - m),
+        min(W, int(xs.max()) + 1 + m),
+        min(H, int(ys.max()) + 1 + m),
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -219,21 +251,24 @@ def parse_quizlink(pdf_path, vocab) -> list[Triple]:
             continue
         blue = _blue_mask(im0)
         clean = _clean(im0, boxes, blue)
-        leader_blue = blue.copy()                         # boxes removed: box borders
-        for x0, y0, x1, y1 in boxes:                      # must not pollute the trace
-            leader_blue[max(0, y0 - 6):y1 + 6, max(0, x0 - 6):x1 + 6] = 0
-        cx0, cy0, cx1, cy1 = _photo_bbox(clean)           # crop to the cadaver photo
+        leader_blue = blue.copy()  # boxes removed: box borders
+        for x0, y0, x1, y1 in boxes:  # must not pollute the trace
+            leader_blue[max(0, y0 - 6) : y1 + 6, max(0, x0 - 6) : x1 + 6] = 0
+        cx0, cy0, cx1, cy1 = _photo_bbox(clean)  # crop to the cadaver photo
         crop = clean[cy0:cy1, cx0:cx1]
         ch, cw = crop.shape[:2]
         for box in boxes:
             x0, y0, x1, y1 = box
-            label = vocab.normalize(_ocr(im0[max(0, y0):y1, max(0, x0):x1]))
-            if not label or "http" in label or "adobe" in label:   # skip intro/junk
+            label = vocab.normalize(_ocr(im0[max(0, y0) : y1, max(0, x0) : x1]))
+            if not label or "http" in label or "adobe" in label:  # skip intro/junk
                 continue
             q = _pull_inward(clean, _leader_pin(im0, leader_blue, box))
-            qx, qy = q[0] - cx0, q[1] - cy0               # to crop coordinates
-            if not (0 <= qx < cw and 0 <= qy < ch):       # pin outside the photo -> skip
+            qx, qy = q[0] - cx0, q[1] - cy0  # to crop coordinates
+            if not (0 <= qx < cw and 0 <= qy < ch):  # pin outside the photo -> skip
                 continue
-            triples.append(Triple(crop, (qx, qy), label, page.number, src))
+            snapped = _snap_to_tissue(crop, (qx, qy))  # keep the pin on tissue
+            if snapped is None:  # pin on background, no tissue nearby -> drop
+                continue
+            triples.append(Triple(crop, snapped, label, page.number, src))
     doc.close()
     return triples
