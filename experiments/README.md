@@ -18,3 +18,4 @@
 | [015-learned-pooler](015-learned-pooler/report.md) | 학습형 풀러 vs GaussianPool | 2026-06-27 | gauss 46.6 vs learned 44.4 | paired Δtop1 -2.3(1/10) Δtop5 4.1(10/10) → 효과 불명확/노이즈 |
 | [016-augmentation](016-augmentation/report.md) | 증강 (정확도+견고성) | 2026-06-27 | clean base 46.6→aug-gal 48.0; CORRUPT base 46.5→aug 47.0 (Δ0.5) |
 | [017-pin-robustness](017-pin-robustness/report.md) | 핀 노이즈 강건성 | 2026-06-27 | top1 46.6%(0px)→43.1%(40px); aug-gal 42.5% @40px |
+| [018-deployment](018-deployment/report.md) | 배포 운영점 + open-set | 2026-06-27 | @90%: test acc 81.2% answer 19.3% | OOV reject 95.1% AUROC 67.7 |
