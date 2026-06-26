@@ -25,3 +25,4 @@
 | [022-recover-labels](022-recover-labels/report.md) | OCR 드롭 라벨 복구 후보 | 2026-06-27 | dropped 346 tri; recoverable candidates 1 labels / 1 triples (>= 90 sim, needs manual verify) |
 | [023-aug-head](023-aug-head/report.md) | 증강 임베딩으로 헤드 학습 | 2026-06-27 | head-raw 49.5 vs head-aug 50.6 | paired Δtop1 1.1(7/10) → 효과 불명확 (증강은 새 다양성 없음) |
 | [024-coherent-pool](024-coherent-pool/report.md) | Feature-coherent 풀링 | 2026-06-27 | best=coherent σ80 τ0.3 Δtop1 -0.2(4/10) → 효과 불명확/노이즈 |
+| [025-region-prior](025-region-prior/report.md) | 부위-조건부 사전 | 2026-06-27 | best λ=0.1 Δtop1 +0.5(6/10) → 효과 불명확 (교차-부위 혼동은 소수) |

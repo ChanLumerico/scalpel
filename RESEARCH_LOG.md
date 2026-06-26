@@ -392,3 +392,29 @@ reporting = **10-seed mean±std** (embed once, vary split). Hardware: Apple M4 M
 - **Result:** artery R−B = +46, vein +33 (difference only **+13**, overlapping;
   muscle/nerve also +52/+53). The specimens are **not strongly colour-injected**.
 - **Conclusion:** The colour cue is weak — won't cleanly separate artery from vein.
+
+### 025 — Region-conditioned Bayesian prior
+- **When:** 2026-06-27.
+- **Why:** The global CLS (region) lifted top5 (exp 008); use it as a *prior*
+  `score(y)=app(y)+λ·cos(CLS_test, region_proto(y))` to fix cross-region confusions.
+- **What & How:** region_proto = mean CLS per gallery class; fixed-λ sweep (no test
+  tuning); exemplar 1-NN; PAIRED. 10 seeds.
+- **Where:** ≥2 core.
+- **Result:** λ=0 46.6 → λ=0.1 **47.2 (Δ+0.5, 6/10)**, higher λ hurts top1; **top5
+  rises 58→65 with λ**.
+- **Conclusion:** Marginal for top1 — the dominant confusions are *same-region* fine
+  look-alikes (artery↔vein, adjacent muscles), which a region prior can't separate.
+  But it meaningfully improves the top-5 candidate set → useful for the deployable
+  top-k + abstention product. Same "top5↑, top1 flat" signature as every coarse
+  signal.
+- **Reproduce:** `scripts/region_prior.py`.
+
+### Synthesis of Phase 8 (task-tailored theory)
+Across feature-coherent pooling (024), region prior (025), the colour cue (DX3),
+and laterality (too rare, 6%) — every task-tailored signal **improves top5 but not
+top1**. Combined with Phases 1-4, the conclusion is robust: the top1 ceiling (~46-50%)
+is set by **same-region fine-grained discrimination** that frozen appearance features
++ few shots cannot resolve. The right answer is reliably in the top-5 (~58-66%); the
+deployable form is therefore **top-k + calibrated abstention** (improvable — region
+prior raises top5 to ~65%), while raising top-1 needs more data or a non-overfitting
+structured/relational model.
