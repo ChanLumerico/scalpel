@@ -12,3 +12,4 @@
 | [008-context-probe](008-context-probe/report.md) | 관계/맥락 프로브 | 2026-06-26 | best=ms_cls top1 41.0±2.9% (local 38.8±3.4, Δ2.2) → 노이즈 안 — 단순 맥락 concat은 무효 |
 | [009-discrimination-probe](009-discrimination-probe/report.md) | 판별 진단 | 2026-06-26 | best=exemplar top1 46.6±3.6% (proto 38.8) → 학습/구조 보상 신호 있음 |
 | [010-baseline-exemplar](010-baseline-exemplar/report.md) | 정식 모델: exemplar + 보정 | 2026-06-26 | exemplar top1 46.6±3.6% / top5 58.0±4.4% @cov83.2% | 상위30% 88.5% |
+| [012-learned-head](012-learned-head/report.md) | 학습형 판별 헤드 (첫 학습) | 2026-06-26 | learned top1 49.2 vs frozen 46.6 | paired Δtop1 +2.6(9/10) Δtop5 +7.8(10/10) → 학습이 일관되게 도움 (paired) |
