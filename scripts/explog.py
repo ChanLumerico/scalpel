@@ -37,9 +37,10 @@ def next_dir(name: str) -> Path:
     return d
 
 
-def bar(path, labels, values, title, ylabel, ymax=None, fmt="{:.1f}"):
+def bar(path, labels, values, title, ylabel, ymax=None, fmt="{:.1f}", errors=None):
     fig, ax = plt.subplots(figsize=(max(4, len(labels) * 1.1), 4))
-    bars = ax.bar([str(x) for x in labels], values, color="#3b7dd8")
+    bars = ax.bar([str(x) for x in labels], values, color="#3b7dd8",
+                  yerr=errors, capsize=5)
     for b, v in zip(bars, values):
         ax.text(b.get_x() + b.get_width() / 2, v, fmt.format(v),
                 ha="center", va="bottom", fontsize=9)

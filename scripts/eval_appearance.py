@@ -8,10 +8,11 @@ no training at all. Pipeline per item ``(image I, pin q)``:
     z_q vs class prototypes (mean gallery embedding) -> nearest = prediction
 
 Restricts to the evaluable core (>=2 instances), splits at the SPECIMEN level
-(leak-free), reports selective-accuracy@coverage + top-k stratified by support.
+(leak-free). The test set is small (~180), so a single split is noisy (+/-3-4%p);
+by default we embed ONCE and evaluate over many seeds, reporting **mean +/- std**.
 Writes a full experiment folder (Korean report + figures) via ``explog``.
 
-    .venv/bin/python scripts/eval_appearance.py
+    .venv/bin/python scripts/eval_appearance.py            # 10-seed baseline
 """
 
 from __future__ import annotations
@@ -20,6 +21,7 @@ import argparse
 import collections
 import datetime
 import json
+import statistics as st
 import subprocess
 import sys
 from pathlib import Path
@@ -45,16 +47,17 @@ def load_core(jsonl, min_count):
     return [r for r in rows if cnt[r["label"]] >= min_count]
 
 
-def split_specimen(rows, test_frac=0.3, seed=0):
-    groups = collections.defaultdict(list)
-    for r in rows:
-        groups[f'{r["src"]}#{r["page"]}'].append(r)
-    keys = sorted(groups)
+def split_indices(core, test_frac, seed):
+    """Specimen-level (per page) split -> (train_idx, test_idx) into ``core``."""
+    g = collections.defaultdict(list)
+    for i, r in enumerate(core):
+        g[f'{r["src"]}#{r["page"]}'].append(i)
+    keys = sorted(g)
     np.random.default_rng(seed).shuffle(keys)
-    n_test = max(1, int(round(len(keys) * test_frac)))
-    tk = set(keys[:n_test])
-    tr = [r for k in keys if k not in tk for r in groups[k]]
-    te = [r for k in keys if k in tk for r in groups[k]]
+    nt = max(1, int(round(len(keys) * test_frac)))
+    tk = set(keys[:nt])
+    tr = [i for k in keys if k not in tk for i in g[k]]
+    te = [i for k in keys if k in tk for i in g[k]]
     return tr, te
 
 
@@ -94,10 +97,10 @@ def prototypes(tr, Ztr):
 
 
 def evaluate(te, Zte, protos, support):
-    """Return (metrics dict, per-item predictions for covered test items)."""
+    """One split -> (metrics dict, per-item predictions for covered test items)."""
     proto_labels = list(protos)
     P = torch.stack([protos[l] for l in proto_labels])
-    strata = collections.defaultdict(lambda: [0, 0, 0, 0])
+    strata = collections.defaultdict(lambda: [0, 0, 0])
     per_item, confus = [], collections.Counter()
     cov = tot = t1 = t3 = t5 = 0
     for i, r in enumerate(te):
@@ -112,21 +115,17 @@ def evaluate(te, Zte, protos, support):
         if not c1:
             confus[f"{r['label']} -> {order[0]}"] += 1
         b = min(support[r["label"]], 4)
-        s = strata[b]; s[0] += 1; s[1] += c1; s[2] += c3; s[3] += c5
+        s = strata[b]; s[0] += 1; s[1] += c1; s[2] += c5
         per_item.append({"image": r["image"], "q": r["q"], "true": r["label"],
                          "pred": order[0], "correct": bool(c1)})
     pct = lambda a, b: round(100 * a / b, 1) if b else 0.0
     metrics = {
-        "n_protos": len(protos), "test": tot, "covered": cov,
-        "coverage_pct": pct(cov, tot), "oov": tot - cov,
+        "n_protos": len(protos), "coverage_pct": pct(cov, tot),
         "sel_top1": pct(t1, cov), "sel_top3": pct(t3, cov), "sel_top5": pct(t5, cov),
-        "e2e_top1": pct(t1, tot), "e2e_top5": pct(t5, tot),
-        "chance_top1": round(100 / max(1, len(protos)), 2),
         "strata": {("4+" if b == 4 else str(b)):
                    {"n": strata[b][0], "top1": pct(strata[b][1], strata[b][0]),
-                    "top3": pct(strata[b][2], strata[b][0]), "top5": pct(strata[b][3], strata[b][0])}
-                   for b in sorted(strata)},
-        "top_confusions": confus.most_common(10),
+                    "top5": pct(strata[b][2], strata[b][0])} for b in sorted(strata)},
+        "confusions": confus,
     }
     return metrics, per_item
 
@@ -138,79 +137,83 @@ def _git_sha():
         return "?"
 
 
-def _report_md(cfg, args, sizes, m, device):
+def _ms(vals):
+    return {"mean": round(st.mean(vals), 1), "std": round(st.pstdev(vals), 1)}
+
+
+def _report_md(cfg, args, sizes, agg, device):
     sigma = cfg.point.gauss_sigma_px
-    core, ncls, ntr, nte = sizes
-    ratio = round(m["sel_top1"] / max(m["chance_top1"], 1e-9))
+    core, ncls = sizes
+    t1, t5 = agg["sel_top1"], agg["sel_top5"]
+    chance = round(100 / max(1, agg["n_protos"]), 2)
+    ratio = round(t1["mean"] / max(chance, 1e-9))
     strata_rows = "\n".join(
-        f"| {k}-shot | {v['n']} | {v['top1']}% | {v['top3']}% | {v['top5']}% |"
-        for k, v in m["strata"].items())
-    conf_rows = "\n".join(f"- `{p}` ×{c}" for p, c in m["top_confusions"][:8]) or "- (없음)"
-    return f"""# 실험 001 — 베이스라인 (M4' 외형 MVP)
+        f"| {k}-shot | {v['n']} | {v['top1']}% | {v['top5']}% |"
+        for k, v in agg["strata"].items())
+    conf_rows = "\n".join(f"- `{p}` x{c}" for p, c in agg["confusions"][:8]) or "- (없음)"
+    return f"""# 베이스라인 ({args.name}) — M4' 외형 MVP
 
 - 날짜: {datetime.date.today().isoformat()}
 - 커밋: `data-pivot @ {_git_sha()}`
-- 스크립트: `scripts/eval_appearance.py`
+- 스크립트: `scripts/eval_appearance.py`  (multi-seed 기본)
 
 ## 목적
 외형 신호만으로 **학습 없이**(frozen DINOv2 + GaussianPool + 프로토타입) 핀이 가리킨
-구조물을 식별할 수 있는지 첫 검증. softmax 분류가 아니라 metric learning이라 long-tail
-(클래스당 1~3샷)에 적합한지 본다.
+구조물을 식별할 수 있는지 검증. 테스트셋이 작아(~180) 단일 split은 ±3-4%p로 흔들리므로,
+임베딩을 한 번만 하고 **{args.n_seeds}개 seed**로 분할만 바꿔 **mean±std**를 보고한다.
 
 ## 방법
 `I → frozen DINOv2(패치 격자) → 핀 q에서 GaussianPool → z_q(L2 정규화) →
-클래스 프로토타입(갤러리 임베딩 평균)과 cosine 최근접 = 예측.`
+클래스 프로토타입(갤러리 평균)과 cosine 최근접 = 예측.` (metric learning, long-tail용)
 
 ## 설정
 | 항목 | 값 |
 |---|---|
 | 백본 | dinov2_vitb14, 518px, frozen, {device} |
 | 풀링 | GaussianPool σ={sigma}px |
-| 거리 | cosine |
-| 데이터 | `{args.jsonl}`, ≥{args.min_count}-인스턴스 코어 |
-| 분할 | 표본(페이지) 단위, test_frac={args.test_frac}, seed={args.seed} |
-| 규모 | 코어 {core} 트리플 / {ncls} 클래스 · 갤러리 {ntr} / 테스트 {nte} · 프로토타입 {m['n_protos']} |
+| 데이터 | `{args.jsonl}`, ≥{args.min_count} 코어: {core} 트리플 / {ncls} 클래스 |
+| 분할 | 표본(페이지) 단위, test_frac={args.test_frac}, seeds=0..{args.n_seeds - 1} |
+| 프로토타입 | 평균 {agg['n_protos']}개 |
 
-## 결과
+## 결과 ({args.n_seeds}-seed, mean±std)
 | 지표 | 값 |
 |---|---|
-| coverage | {m['coverage_pct']}% ({m['oov']}개 OOV→기권) |
-| **selective top1** | **{m['sel_top1']}%** |
-| selective top3 | {m['sel_top3']}% |
-| selective top5 | {m['sel_top5']}% |
-| end-to-end top1 (OOV=오답) | {m['e2e_top1']}% |
-| 무작위 기대 top1 | {m['chance_top1']}% |
+| coverage | {agg['coverage_pct']['mean']}% |
+| **selective top1** | **{t1['mean']} ± {t1['std']}%** |
+| selective top3 | {agg['sel_top3']['mean']} ± {agg['sel_top3']['std']}% |
+| selective top5 | {t5['mean']} ± {t5['std']}% |
+| 무작위 기대 top1 | {chance}% |
+
+per-seed top1: {agg['per_seed_top1']}
 
 ![top-k](fig_topk.png)
 
-### support(갤러리 샷 수)별 정확도
-| 버킷 | n | top1 | top3 | top5 |
-|---|---|---|---|---|
+### support(갤러리 샷 수)별 정확도 (seed 평균)
+| 버킷 | n(평균) | top1 | top5 |
+|---|---|---|---|
 {strata_rows}
 
 ![support](fig_support.png)
 
-### 주요 혼동 (정답 → 예측, 상위)
+### 주요 혼동 (정답 → 예측, seed 합산 상위)
 {conf_rows}
 
 ![confusions](fig_confusions.png)
 
-### 예측 예시 (O=정답, X=오답)
+### 예측 예시 (seed 0, O=정답 X=오답)
 ![examples](examples.private.png)
-> ⚠️ 이 figure는 카데바 이미지를 포함하므로 git에 올리지 않습니다(로컬 전용, donor dignity §6).
+> ⚠️ 카데바 이미지 포함 → git 제외(로컬 전용, §6).
 
 ## 해석
-- top1 **{m['sel_top1']}%** = 무작위({m['chance_top1']}%)의 **약 {ratio}배** → 외형 신호가 실재한다(가설 검증 성공).
-- top5 {m['sel_top5']}% → 5개 후보 안엔 절반 가까이 정답이 들어옴.
-- coverage {m['coverage_pct']}% → 테스트 대부분이 갤러리에 프로토타입을 가짐(나머지는 정직하게 기권).
-- support별 정확도가 들쭉날쭉한 건 버킷별 n이 작고(수십 개), 서로 다른 표본의 뷰를 평균한
-  프로토타입이 흐려질 수 있어서 — 데이터가 커지면 안정화될 노이즈로 본다.
+- top1 **{t1['mean']}±{t1['std']}%** = 무작위({chance}%)의 약 **{ratio}배** → 외형 신호 실재.
+- ±{t1['std']}%p가 분할 노이즈 폭. 단일 seed 비교로 작은 차이를 논하면 안 됨.
+- 혼동은 대부분 해부학적 인접/유사 구조물 → 관계추론(M6')이 메울 지점.
 
 ## 한계
-무파라미터 GaussianPool(σ={sigma}px) · 관계추론 없음 · 보정/기권 미적용 · 모달리티(카데바/골표본/3D) 혼재 · 테스트 {nte}개로 작음.
+무파라미터 GaussianPool · 관계추론 없음 · 보정/기권 미적용 · 모달리티 혼재 · 코어 {core} 트리플.
 
 ## 다음
-σ 스윕 · bilinear 단일패치 vs 가우시안 · cosine vs L2 · 모달리티 분리(혼동 원인 규명) → 이후 M5' 보정+기권.
+풀링(σ) · 모달리티 분리 · M5' 보정+기권. 비교는 항상 multi-seed mean±std로.
 """
 
 
@@ -219,7 +222,7 @@ def main():
     ap.add_argument("--jsonl", default="data/triples/triples.jsonl")
     ap.add_argument("--min-count", type=int, default=2)
     ap.add_argument("--test-frac", type=float, default=0.3)
-    ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--n-seeds", type=int, default=10)
     ap.add_argument("--name", default="baseline")
     args = ap.parse_args()
     base = Path(args.jsonl).parent
@@ -227,53 +230,81 @@ def main():
     device = "mps" if torch.backends.mps.is_available() else "cpu"
     cfg = PipelineCfg()
     S = cfg.backbone.image_size
-    print(f"device={device} backbone={cfg.backbone.name} S={S} sigma={cfg.point.gauss_sigma_px}px")
+    print(f"device={device} backbone={cfg.backbone.name} sigma={cfg.point.gauss_sigma_px}px seeds={args.n_seeds}")
 
     core = load_core(args.jsonl, args.min_count)
-    tr, te = split_specimen(core, args.test_frac, args.seed)
     ncls = len({r["label"] for r in core})
-    print(f"core {len(core)} / {ncls} cls | gallery {len(tr)} / test {len(te)}")
+    print(f"core {len(core)} / {ncls} cls")
 
-    print("loading frozen DINOv2 ...")
+    print("loading frozen DINOv2 + embedding core once ...")
     backbone = DinoBackbone(cfg.backbone)
     backbone.ensure_loaded()
     backbone.to(device)
     pool = GaussianPool(cfg.point).to(device)
+    Z = embed(core, base, backbone, pool, S, device)
 
-    print("embedding gallery ..."); Ztr = embed(tr, base, backbone, pool, S, device)
-    print("embedding test ...");    Zte = embed(te, base, backbone, pool, S, device)
-    protos, support = prototypes(tr, Ztr)
-    m, per_item = evaluate(te, Zte, protos, support)
-    print(json.dumps({k: m[k] for k in ("coverage_pct", "sel_top1", "sel_top3", "sel_top5")}, indent=2))
+    # ---- evaluate over seeds (embedding is split-independent) ----------------
+    ms, per_item0 = [], None
+    for seed in range(args.n_seeds):
+        tr, te = split_indices(core, args.test_frac, seed)
+        trr, ter = [core[i] for i in tr], [core[i] for i in te]
+        protos, support = prototypes(trr, Z[tr])
+        m, per_item = evaluate(ter, Z[te], protos, support)
+        ms.append(m)
+        if seed == 0:
+            per_item0 = per_item
+        print(f"  seed {seed}: top1 {m['sel_top1']:.1f} top5 {m['sel_top5']:.1f} cov {m['coverage_pct']:.0f}")
 
-    # ---- experiment folder: figures + Korean report --------------------------
+    # ---- aggregate -----------------------------------------------------------
+    agg = {
+        "n_protos": round(st.mean([m["n_protos"] for m in ms])),
+        "coverage_pct": _ms([m["coverage_pct"] for m in ms]),
+        "sel_top1": _ms([m["sel_top1"] for m in ms]),
+        "sel_top3": _ms([m["sel_top3"] for m in ms]),
+        "sel_top5": _ms([m["sel_top5"] for m in ms]),
+        "per_seed_top1": [m["sel_top1"] for m in ms],
+    }
+    sa, sn, s5 = (collections.defaultdict(list) for _ in range(3))
+    for m in ms:
+        for b, v in m["strata"].items():
+            sa[b].append(v["top1"]); sn[b].append(v["n"]); s5[b].append(v["top5"])
+    agg["strata"] = {b: {"n": round(st.mean(sn[b])), "top1": round(st.mean(sa[b]), 1),
+                         "top5": round(st.mean(s5[b]), 1)} for b in sorted(sa)}
+    conf = collections.Counter()
+    for m in ms:
+        conf.update(m["confusions"])
+    agg["confusions"] = conf.most_common(10)
+    print(f"\n== {args.n_seeds}-seed: top1 {agg['sel_top1']['mean']}±{agg['sel_top1']['std']}  "
+          f"top5 {agg['sel_top5']['mean']}±{agg['sel_top5']['std']}  cov {agg['coverage_pct']['mean']}% ==")
+
+    # ---- experiment folder ---------------------------------------------------
     d = explog.next_dir(args.name)
     explog.bar(d / "fig_topk.png", ["top1", "top3", "top5"],
-               [m["sel_top1"], m["sel_top3"], m["sel_top5"]],
-               "Selective accuracy @ coverage", "%", ymax=100)
+               [agg["sel_top1"]["mean"], agg["sel_top3"]["mean"], agg["sel_top5"]["mean"]],
+               f"Selective accuracy ({args.n_seeds}-seed mean±std)", "%", ymax=100,
+               errors=[agg["sel_top1"]["std"], agg["sel_top3"]["std"], agg["sel_top5"]["std"]])
     explog.grouped_bar(
-        d / "fig_support.png", list(m["strata"]),
-        {"top1": [v["top1"] for v in m["strata"].values()],
-         "top5": [v["top5"] for v in m["strata"].values()]},
-        "Accuracy by gallery support count", "%", ymax=100)
-    explog.barh_pairs(d / "fig_confusions.png",
-                      [(p, c) for p, c in m["top_confusions"]],
-                      "Top confusions (true -> pred)")
-    wrong = [x for x in per_item if not x["correct"]][:6]
-    right = [x for x in per_item if x["correct"]][:6]
+        d / "fig_support.png", list(agg["strata"]),
+        {"top1": [v["top1"] for v in agg["strata"].values()],
+         "top5": [v["top5"] for v in agg["strata"].values()]},
+        "Accuracy by gallery support count (seed mean)", "%", ymax=100)
+    explog.barh_pairs(d / "fig_confusions.png", agg["confusions"],
+                      "Top confusions (true -> pred, seeds summed)")
+    right = [x for x in per_item0 if x["correct"]][:6]
+    wrong = [x for x in per_item0 if not x["correct"]][:6]
     explog.montage(d / "examples.private.png", right + wrong, base, ncol=4)
 
-    sizes = (len(core), ncls, len(tr), len(te))
-    m_full = dict(m)
-    m_full.update({"title": "베이스라인 (M4' 외형 MVP)",
+    m_full = dict(agg)
+    m_full.update({"title": f"베이스라인 ({args.name})",
                    "date": datetime.date.today().isoformat(),
-                   "headline": f"top1 {m['sel_top1']}% / top5 {m['sel_top5']}% @cov{m['coverage_pct']}% "
-                               f"({m['n_protos']}-way)",
+                   "headline": f"top1 {agg['sel_top1']['mean']}±{agg['sel_top1']['std']}% / "
+                               f"top5 {agg['sel_top5']['mean']}±{agg['sel_top5']['std']}% "
+                               f"@cov{agg['coverage_pct']['mean']}% ({agg['n_protos']}-way, {args.n_seeds} seeds)",
                    "config": {"backbone": cfg.backbone.name, "sigma_px": cfg.point.gauss_sigma_px,
-                              "image_size": S, "min_count": args.min_count,
-                              "test_frac": args.test_frac, "seed": args.seed}})
-    explog.write(d, _report_md(cfg, args, sizes, m, device), m_full)
-    print(f"\nwrote experiment -> {d}")
+                              "min_count": args.min_count, "test_frac": args.test_frac,
+                              "n_seeds": args.n_seeds}})
+    explog.write(d, _report_md(cfg, args, (len(core), ncls), agg, device), m_full)
+    print(f"wrote experiment -> {d}")
     return 0
 
 
