@@ -150,6 +150,7 @@ relational expert (R-GCN), and PoE fusion, none adopted as of this report (§6.4
 | 019 | backbone scaling | vitb14 46.6 / vitl14 46.8 / vitg14 47.7 (marginal) |
 | 020 | structured relational context (M6' step 1) | no top1 gain (+region −3.5, +neighbor −0.4) |
 | 021 | singletons in gallery (A-1) | vocab ~201→448 (2.2×) at −2.9 pp top1 cost |
+| 022 | OCR-recover dropped labels (A-2) | negative: 346 dropped are genuine junk, ~0 recoverable |
 
 ---
 

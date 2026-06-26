@@ -22,3 +22,4 @@
 | [019-backbone-scale](019-backbone-scale/report.md) | 백본 스케일링 | 2026-06-27 | vitb14 top1 46.6% | vitl14 top1 46.8% | vitg14 top1 47.7% |
 | [020-relational-context](020-relational-context/report.md) | M6' 구조적 이웃 맥락 | 2026-06-27 | best=neighbor Δtop1 -0.4(4/10) → 구조적 맥락도 top1 무효 → 데이터/학습이 레버 |
 | [021-singleton-gallery](021-singleton-gallery/report.md) | 싱글톤 갤러리 포함 | 2026-06-27 | vocab 201→448, core top1 45.2→42.3 (Δ-2.9) |
+| [022-recover-labels](022-recover-labels/report.md) | OCR 드롭 라벨 복구 후보 | 2026-06-27 | dropped 346 tri; recoverable candidates 1 labels / 1 triples (>= 90 sim, needs manual verify) |

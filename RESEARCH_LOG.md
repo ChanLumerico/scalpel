@@ -332,5 +332,17 @@ reporting = **10-seed mean±std** (embed once, vary split). Hardware: Apple M4 M
 - **When:** 2026-06-27.
 - **Why:** Some triples were dropped as OCR junk that are actually real structures
   with OCR errors; fuzzy-recovery against the clean lexicon could regain them.
-- **What & How:** *(pending.)*
-- **Reproduce:** *(pending.)*
+- **What & How:** Re-parsed all 31 PDFs to collect raw OCR labels; identified the
+  ones `clean` dropped; high-threshold (≥90 token-sort, len≥6) fuzzy-matched them to
+  the 567-label clean vocabulary to surface recovery CANDIDATES — deliberately not
+  auto-adding (medical labels must be exact; a wrong recovery corrupts data).
+- **Where:** All 31 PDFs.
+- **Result:** 346 dropped triples (264 distinct labels); **only 1 high-confidence
+  recovery candidate** (`cartilages`→`cartilage`, a plural). The dropped labels are
+  too garbled to near-match any real structure.
+- **Conclusion:** Negative — the dropped labels are genuine OCR garbage, not
+  recoverable structures; the label cleaning (D2 + hand review) was already
+  thorough. Fuzzy-recovery adds ~0 usable triples (lowering the threshold would
+  over-recover wrong labels). Better OCR (upscale/denoise re-OCR) might read a few
+  more but is low-yield and out of scope.
+- **Reproduce:** `scripts/recover_labels.py`.
