@@ -96,33 +96,36 @@ def _blue_mask(im0: np.ndarray) -> np.ndarray:
     return cv2.inRange(hsv, np.array(_BLUE_LO), np.array(_BLUE_HI))
 
 
-def _leader_pin(im0: np.ndarray, blue: np.ndarray, box) -> tuple[int, int]:
-    """Pin from the leader attached to ``box``: endpoint (solid) or centroid (dashed).
+def _leader_pin(im0: np.ndarray, leader_blue: np.ndarray, box) -> tuple[int, int]:
+    """Pin from the leader attached to ``box``: tissue endpoint (solid) or region
+    centroid (dashed). ``leader_blue`` must already have the label boxes removed
+    (so box borders/text don't pollute the trace).
 
-    Dashed leaders outline a region; solid leaders point at one spot (§4.5). We
-    take the blue component nearest the box; if it is fragmented/spread (dashed
-    outline) we use the centroid of its convex hull, else the far endpoint.
+    Solid leaders are thin lines -> take the point farthest from the box (the
+    tissue end). Dashed leaders outline a region (their convex hull encloses real
+    area while staying thin) -> take the hull centroid (§4.5).
     """
     import cv2
     from scipy import ndimage as ndi
 
     x0, y0, x1, y1 = box
     bx, by = (x0 + x1) / 2, (y0 + y1) / 2
-    lbl, n = ndi.label(blue > 0)
+    lbl, n = ndi.label(leader_blue > 0)
     if n == 0:
         return int(bx), int(by)
-    # component whose pixels come nearest the box
-    best, bestd = None, 1e18
+    best, bestd = None, 1e18                              # component nearest the box
     for i in range(1, n + 1):
         ys, xs = np.where(lbl == i)
         d = ((xs - bx) ** 2 + (ys - by) ** 2).min()
         if d < bestd:
             bestd, best = d, (xs, ys)
     xs, ys = best
-    fill = xs.size / max(1.0, (xs.ptp() + 1) * (ys.ptp() + 1))
-    if fill < 0.15:                                       # spread/dashed -> region
+    pts = np.stack([xs, ys], 1).astype(np.int32)
+    hull_area = cv2.contourArea(cv2.convexHull(pts)) if xs.size >= 3 else 0.0
+    enclosed = hull_area > 40 * 40 and xs.size / (hull_area + 1.0) < 0.08
+    if enclosed:                                          # dashed outline -> region centroid
         return int(xs.mean()), int(ys.mean())
-    far = np.argmax((xs - bx) ** 2 + (ys - by) ** 2)      # solid -> far endpoint
+    far = int(np.argmax((xs - bx) ** 2 + (ys - by) ** 2))  # solid -> tissue endpoint
     return int(xs[far]), int(ys[far])
 
 
@@ -169,6 +172,31 @@ def _ocr(crop: np.ndarray) -> str:
     return pytesseract.image_to_string(crop, config="--psm 7").strip()
 
 
+def _photo_bbox(img: np.ndarray) -> tuple[int, int, int, int]:
+    """Bounding box of the cadaver photo: the large saturated tissue region.
+
+    Crops out the page borders, the region caption ("Thorax, anterior") and the
+    attribution text -- all gray/white, low-saturation -- so the model sees ONLY
+    the dissection photo (and no caption-region leak).
+    """
+    import cv2
+    from scipy import ndimage as ndi
+
+    hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+    sat, val = hsv[..., 1], hsv[..., 2]
+    mask = ((sat > 30) & (val > 35) & (val < 248)).astype(np.uint8) * 255
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, np.ones((31, 31), np.uint8))
+    lbl, n = ndi.label(mask > 0)
+    if n == 0:
+        return 0, 0, img.shape[1], img.shape[0]
+    big = int(np.argmax(np.bincount(lbl.ravel())[1:])) + 1   # largest tissue blob
+    ys, xs = np.where(lbl == big)
+    H, W = img.shape[:2]
+    m = int(0.02 * max(np.ptp(xs), np.ptp(ys)))              # small margin
+    return (max(0, int(xs.min()) - m), max(0, int(ys.min()) - m),
+            min(W, int(xs.max()) + 1 + m), min(H, int(ys.max()) + 1 + m))
+
+
 # --------------------------------------------------------------------------- #
 # entry point                                                                 #
 # --------------------------------------------------------------------------- #
@@ -191,12 +219,21 @@ def parse_quizlink(pdf_path, vocab) -> list[Triple]:
             continue
         blue = _blue_mask(im0)
         clean = _clean(im0, boxes, blue)
+        leader_blue = blue.copy()                         # boxes removed: box borders
+        for x0, y0, x1, y1 in boxes:                      # must not pollute the trace
+            leader_blue[max(0, y0 - 6):y1 + 6, max(0, x0 - 6):x1 + 6] = 0
+        cx0, cy0, cx1, cy1 = _photo_bbox(clean)           # crop to the cadaver photo
+        crop = clean[cy0:cy1, cx0:cx1]
+        ch, cw = crop.shape[:2]
         for box in boxes:
             x0, y0, x1, y1 = box
             label = vocab.normalize(_ocr(im0[max(0, y0):y1, max(0, x0):x1]))
-            if not label:
+            if not label or "http" in label or "adobe" in label:   # skip intro/junk
                 continue
-            q = _pull_inward(clean, _leader_pin(im0, blue, box))
-            triples.append(Triple(clean, q, label, page.number, src))
+            q = _pull_inward(clean, _leader_pin(im0, leader_blue, box))
+            qx, qy = q[0] - cx0, q[1] - cy0               # to crop coordinates
+            if not (0 <= qx < cw and 0 <= qy < ch):       # pin outside the photo -> skip
+                continue
+            triples.append(Triple(crop, (qx, qy), label, page.number, src))
     doc.close()
     return triples
