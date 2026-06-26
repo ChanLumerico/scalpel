@@ -1,0 +1,31 @@
+{
+  "title": "증강 (정확도+견고성)",
+  "date": "2026-06-27",
+  "headline": "clean base 46.6→aug-gal 48.0; CORRUPT base 46.5→aug 47.0 (Δ0.5)",
+  "clean": {
+    "base": [
+      46.6,
+      3.6
+    ],
+    "aug-gal": [
+      48.0,
+      3.8
+    ],
+    "tta": [
+      46.6,
+      3.2
+    ],
+    "both": [
+      47.1,
+      4.2
+    ]
+  },
+  "corrupt_base": [
+    46.5,
+    3.5
+  ],
+  "corrupt_aug": [
+    47.0,
+    3.6
+  ]
+}
