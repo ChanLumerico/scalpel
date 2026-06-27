@@ -1,4 +1,4 @@
-# SCALPEL — Detailed Research Log (5W1H per experiment)
+# SCALPEL — Detailed Research Log
 
 This is the project's running research journal. Every experiment is recorded with
 **When / Why (motivation & hypothesis) / What & How (method & setup) / Where (data
@@ -599,3 +599,69 @@ scaling curve (013) showed.** Model-side ideas are now exhausted across nine pha
   dissected thin structures are themselves unreliable — visual ≠ anatomical boundary,
   the DX4 finding — so the masks are bad AND the averaging is wrong.)
 - **Reproduce:** `scripts/sam_classaware.py`.
+
+### 033 — Thin-gated SAM pooling (the final SAM verdict)
+- **When:** 2026-06-27.
+- **Why:** Inspection of the masks (rendered as `*.private.png`) converged the design
+  away from exp 032's failure: a whole/large mask dilutes (hard average), and forcing
+  a bulk mask small just yields an arbitrary circle (≈ Gaussian). The honest synthesis:
+  SAM only adds a usable region where the structure is a DISTINCT object — i.e. **thin
+  tubular structures** (vessel/nerve/duct). So gate ONLY thin items by the mask, and
+  fall bulk back to the plain Gaussian. Pre-registered a strict adoption rule to avoid
+  the "pretty mask, unchanged embedding" trap that fooled 008/024/026.
+- **What & How:** Per item, pooling weight = `feather(SAM mask) × pin-Gaussian` for
+  thin (SAM's smallest multimask output; if even that is loose, >6% of image — e.g. a
+  fat vein blob — fall back to Gaussian); plain pin-Gaussian for bulk. 'Treatment' thus
+  differs from 'baseline' (plain Gaussian) only on thin items. exemplar 1-NN, 10-seed,
+  paired, split by the test item's coarse type. **Pre-registered: ADOPT iff thin
+  paired Δ>0 AND ≥7/10 seeds.**
+- **Where:** ≥2 core (thin 249 / bulk 352); thin masked 216, loose-fallback 33.
+- **Result:** thin **44.5±5.1 vs 46.5±6.6 → Δ−2.0 (1/10)**; bulk 47.3±3.3 vs 46.6±3.2
+  → +0.7 (6/10); all 46.2±3.5 vs 46.6±3.6 → −0.4 (3/10). (bulk is not identical because
+  a bulk query matches against the whole gallery, whose thin items' embeddings changed
+  — a small, noisy side-effect.)
+- **Conclusion:** **REJECTED by the pre-registered rule** — mask-gating *actively hurts*
+  thin recognition (−2.0). Even where SAM masks look anatomically correct on vessels/
+  nerves, gating the pool by them does not improve (and degrades) the embedding: the
+  Gaussian's soft reach was using context the tight mask discards, and SAM's masks are
+  not consistent enough to help. This is the 008/024/026 pattern at its sharpest —
+  prettier localization, no (negative) accuracy. **The SAM/segmentation direction is
+  now closed in all forms** (point-prompt DX4, class-aware oracle 032, thin-gated 033).
+  The ceiling remains data, not pooling.
+- **Reproduce:** `scripts/sam_thingate.py`.
+
+---
+
+## Phase 10 — The last model axis: visual prompting (q at the backbone INPUT)
+
+### 034 — Visual prompting
+- **When:** 2026-06-27.
+- **Why:** Every method so far (pooling, SAM) conditions on q at READOUT time — the
+  backbone always sees the CLEAN image and q only selects/weights tokens afterwards.
+  The one untouched, orthogonal axis is injecting q at the backbone INPUT: draw a
+  marker at q on the image so DINO itself "sees" the pin. If even this fails, the model
+  axis is exhausted *outside* the pooling plane too, locking the data-ceiling claim;
+  if it wins, the ceiling was secretly a q-conditioning-locus problem and the whole
+  interpretation flips. Either way maximal information for half a day's work.
+- **What & How:** Render a marker at q on the 518px image, run frozen DINO on the
+  MARKED image, read out: (a) CLS token (global, location-aware via the marker —
+  canonical visual prompting) or (b) GaussianPool at q on the marked grid. Markers:
+  red filled dot r8, red hollow ring r18 / r30 (no occlusion), lime ring r18 (colour).
+  Baseline = GaussianPool on the CLEAN image (46.6). exemplar 1-NN, 10-seed, paired.
+  Pre-registered: ADOPT iff best variant Δtop1>0 AND ≥8/10 (≈9 variants → strict,
+  Holm-aware).
+- **Where:** ≥2 core.
+- **Result:** best VP = red-dot8-gpool **46.5 (Δ−0.1, 4/10)** → fails. CLS readouts:
+  clean-cls 30.3, marked-cls ~38–40 — i.e. **the marker DOES inject location** (CLS
+  jumps +9pp when the pin is drawn) and marked-cls gives the project-best **top5 ~66**,
+  but CLS top1 stays far below local pooling (≈39 vs 46.6). gpool-on-marked ≈ baseline
+  (the marker neither helps local pooling nor matters; top5 slips ~2pp from occlusion).
+- **Conclusion:** REJECTED. Visual prompting verifiably encodes the pin location into
+  the backbone, yet does not beat readout-time Gaussian pooling on top1 — CLS is a
+  region signal (great top5, poor fine top1, exactly the exp 008 split), and a local
+  marker can't add fine discriminability that isn't in the image. **The model axis is
+  now exhausted both inside the pooling plane (008/015/020/024/030) and outside it
+  (034).** The "data is the binding ceiling" conclusion is locked from both directions.
+  Next (per ROI): a human-ceiling study to separate data-limit from intrinsic label
+  ambiguity before any expensive data expansion.
+- **Reproduce:** `scripts/visual_prompt.py`.

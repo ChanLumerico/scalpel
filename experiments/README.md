@@ -32,3 +32,6 @@
 | [029-orientation](029-orientation/report.md) | 국소 방향/질감 기술자 | 2026-06-27 | best λ=0.2 Δtop1 -4.0(0/10) → 방향 기술자 추가 이득 없음 | orient-only 11.2 |
 | [030-multiproto](030-multiproto/report.md) | 다중 프로토타입/soft 집계 | 2026-06-27 | best non-ex kmeans-3 Δtop1 -0.8(0/10) → exemplar-max가 여전히 최선 |
 | [031-ensemble](031-ensemble/report.md) | 다양백본 앙상블 | 2026-06-27 | best λ=1.0 Δtop1 +1.0(5/10) → 상보성 부족 — 앙상블 무효 |
+| [032-sam-classaware](032-sam-classaware/report.md) | 클래스-인지 SAM 마스킹 | 2026-06-27 | best sam-small Δtop1 -5.2(1/10) → 마스킹 무효 — Gaussian이 최선 (DX4 재확인) | thin g47.0/ca39.4 bulk g46.3/ca39.9 |
+| [033-sam-thingate](033-sam-thingate/report.md) | thin-게이팅 SAM 풀링 (최종 판정) | 2026-06-27 | thin Δtop1 -2.0(1/10) → 기각; SAM 전 형태 종결(DX4/032/033) |
+| [034-visual-prompt](034-visual-prompt/report.md) | Visual prompting | 2026-06-27 | best red-dot8-gpool Δtop1 -0.1(4/10) → 기각 |

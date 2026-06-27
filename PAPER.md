@@ -160,7 +160,9 @@ relational expert (R-GCN), and PoE fusion, none adopted as of this report (§6.4
 | 029 | local-orientation/texture | orient-only 11.2; fusion only hurts (−4 to −12) |
 | 030 | multi-prototype / soft agg. | exemplar-max best; smoothing monotonically hurts |
 | 031 | DINO ⊕ BiomedCLIP ensemble | marginal +1.0 but 5/10 — not complementary |
-| 032 | class-aware SAM masking (oracle) | negative: hard mask-avg dilutes; gauss 46.6 ≫ all (soft-edge variant WIP) |
+| 032 | class-aware SAM masking (oracle) | negative: hard mask-avg dilutes; gauss 46.6 ≫ all (thin/bulk both lose) |
+| 033 | thin-gated SAM pooling (final SAM verdict) | rejected: thin Δ−2.0 (1/10); mask-gating hurts even vessels — SAM closed |
+| 034 | visual prompting (q at backbone input) | rejected: best Δ−0.1 (4/10); marker encodes location but CLS top1≈39≪46.6 — model axis closed |
 
 ---
 
@@ -224,6 +226,29 @@ accuracy in the top 5–20% of confidence). In the best setting (exp 014): **con
   member is not complementary enough to correct DINO's errors. Five independent levers — external
   knowledge, loss geometry, hand texture, prototype shape, backbone diversity — all fail to move top1
   beyond seed noise, triangulating the same data ceiling from five new directions.
+- **SAM segmentation, all forms (DX4, exp 032–033):** three escalating attempts to use
+  SAM masks for pooling all fail. Point-prompt masking (DX4) doesn't fit dissection
+  (visual ≠ anatomical boundary). Class-aware oracle routing (032: thin→small,
+  bulk→large mask, masked-mean) loses on both halves (gauss 46.6 ≫ class-aware 39.7),
+  because a hard uniform mask-average dilutes the pin-concentrated signal at every
+  scale. The converged, charitable design (033: gate ONLY thin tubular structures by a
+  Gaussian-feathered mask, fall bulk back to the plain Gaussian) was pre-registered to
+  adopt iff the thin subset improved in ≥7/10 seeds — it instead *degraded* thin
+  recognition (Δ−2.0, 1/10). Even anatomically-correct vessel/nerve masks do not
+  improve the embedding: the Gaussian's soft reach already uses the relevant context,
+  and tight masking discards it. Pretty localization, negative accuracy — the
+  008/024/026 pattern at its sharpest. The segmentation direction is closed.
+- **Visual prompting — q at the backbone INPUT (exp 034):** the one axis orthogonal to
+  the entire pooling plane — drawing a marker at q on the image so the frozen backbone
+  itself encodes the pin, rather than conditioning at readout. It verifiably works as
+  *injection* (CLS top1 jumps clean 30.3 → marked ~39, and marked-CLS gives the
+  project-best top5 ~66) but **fails as a model**: best variant red-dot8-gpool 46.5
+  (Δ−0.1, 4/10 vs the 46.6 Gaussian baseline), and CLS top1 (~39) stays far below
+  readout pooling. CLS is a region signal (high top5, low fine top1 — the exp 008 split
+  again); a local marker adds no fine discriminability the image doesn't contain. With
+  visual prompting negative, the model axis is exhausted **both inside the pooling plane
+  (008/015/020/024/030) and outside it (034)** — the data-ceiling is locked from both
+  directions.
 
 ### 6.5 What did work (modestly)
 **Learned discriminative head (SupCon linear, exp 012):** a low-capacity head on the frozen embedding
@@ -325,4 +350,4 @@ ultimate goal (real deployment):
 - Every experiment is logged under `experiments/NNN-*/` with a report, figures, and `metrics.json`.
   Figures containing cadaver imagery are saved as `*.private.png` and git-ignored.
 
-*Document version: `data-pivot`. Through exp 031 (idea-menu sweep: knowledge/loss/texture/aggregation/ensemble — all negative); model-side levers exhausted across nine phases, ceiling is data-bound.*
+*Document version: `data-pivot`. Through exp 034 — model axis exhausted both inside the pooling plane and outside it (visual prompting): idea-menu sweep + SAM (point-prompt/class-aware/thin-gated) + backbone-input q-injection all negative. Ceiling is data-bound. Next: human-ceiling study before data expansion.*
