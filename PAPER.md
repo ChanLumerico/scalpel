@@ -166,6 +166,7 @@ relational expert (R-GCN), and PoE fusion, none adopted as of this report (§6.4
 | 036 | M-opt0 eval purification | HP-selection leak ~1.5pp (paired Δ stand); cross-cadaver gap ~6.5pp (page-split same-cadaver-optimistic) |
 | 037 | KDE posterior + conformal + OOD | ECE↓ (0.18 vs 0.37) but AURC flat & conformal sets ~110/172 useless; reliability heuristics already near-optimal |
 | 038 | cross-cadaver gap decomposition | gap ~0 (cross 46.5 ≈ page 46.6); same-cadaver match 0.3% — M-opt0 "6.5pp gap" was a small-gallery artifact; DX1 confirmed (coverage drops, accuracy invariant) |
+| 040 | relational-reasoning feasibility (M-rel0) | stop-but-hold: 58% pages single-pin; perfect-oracle ceiling +0.4pp ≈ 0.6 pins/seed (≪ σ3.6); 5 resolvable pairs, 3/5 direction-dependent — data-limited (crack #0/#2), revivable by data expansion |
 
 ---
 
@@ -252,6 +253,22 @@ accuracy in the top 5–20% of confidence). In the best setting (exp 014): **con
   visual prompting negative, the model axis is exhausted **both inside the pooling plane
   (008/015/020/024/030) and outside it (034)** — the data-ceiling is locked from both
   directions.
+- **Relational reasoning — joint inference under an anatomy graph (exp 040, M-rel0):** the
+  one axis that uses information *outside appearance entirely* — instead of classifying each
+  pin independently, jointly infer all pins on a page under anatomical relations (NAVEL:
+  nerve–artery–vein order), so relative pin position corrects the appearance-unsplittable
+  artery↔vein confusion (DX3). A precursor gate, before building any graph, kills it cheaply
+  on the current data: the relational term can only *fire* when a graph-neighbour pin is
+  co-present, but **58% of pages are single-pin** and a NAVEL bundle co-occurs for only 13%
+  of vessel/nerve pins — the femoral-triangle textbook case is the exception, not the rule.
+  The perfect-oracle ceiling (oracle pins + alignment + graph) collapses through honest
+  stages (loose +9.8 → de-false-positived +7.0 → NAVEL +3.0 → textbook-swap +0.8) to a
+  **realistic +0.4 pp ≈ 0.6 pins/seed**, far under the σ=3.6 split noise; of the 5 genuinely
+  resolvable confusion pairs, 3/5 are direction-dependent (lateral/medial, sup/inf, ext/int)
+  — exactly the 2D-projection/L-R-flip failure the relation is supposed to avoid. The
+  bottleneck is *data structure* (one structure pinned per photo), not the model or the
+  graph — so this axis is **held, not killed**: unlike the model/reliability axes, data
+  expansion (multi-pin, bundle-co-labelled pages) would directly revive it.
 
 ### 6.5 What did work (modestly)
 **Learned discriminative head (SupCon linear, exp 012):** a low-capacity head on the frozen embedding
@@ -368,4 +385,10 @@ ultimate goal (real deployment):
 - Every experiment is logged under `experiments/NNN-*/` with a report, figures, and `metrics.json`.
   Figures containing cadaver imagery are saved as `*.private.png` and git-ignored.
 
-*Document version: `data-pivot`. Through exp 034 — model axis exhausted both inside the pooling plane and outside it (visual prompting): idea-menu sweep + SAM (point-prompt/class-aware/thin-gated) + backbone-input q-injection all negative. Ceiling is data-bound. Next: human-ceiling study before data expansion.*
+*Document version: `data-pivot`. Through exp 040 — three axes now exhausted on the fixed 953:
+**model** (008–034: pooling, SAM, visual prompting), **reliability** (037: KDE/conformal/OOD add no
+operating-point gain), and **cross-cadaver** (038: accuracy invariant, only coverage drops). The
+**relational** axis (040) is held-not-killed — its perfect-oracle ceiling (+0.4 pp ≈ 0.6 pins/seed) is
+buried in noise because 58% of pages are single-pin (crack #0), but data expansion would revive it.
+Every axis converges on the same conclusion: the ceiling is data-bound. Next: data expansion (multi-pin /
+bundle-co-labelled pages), with the human-ceiling study to bound intrinsic label ambiguity first.*

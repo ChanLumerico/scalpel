@@ -768,3 +768,62 @@ runs in parallel, awaiting the pilot.
   normalization. A clean example of the protocol deciding the conclusion (a fair cross-
   cadaver eval needs a *full* gallery, not a holdout-internal one).
 - **Reproduce:** `scripts/cadaver_invariant.py`.
+
+## Phase 12 — Relational-reasoning axis (a wholly new inference paradigm)
+
+### 040 / M-rel0 — Relational-reasoning feasibility gate (precursor, decisive)
+- **When:** 2026-06-27.
+- **Why (motivation/hypothesis):** Every method to date (027–038) classifies each pin
+  *independently*, p(y|I,q), and the dominant confusion (artery↔vein, DX3) is unsplittable
+  by appearance. A new axis: jointly infer all pins under an anatomical knowledge graph,
+  p(y₁..yₙ|I,{qᵢ},G), so *relative position + anatomical rules* (e.g. NAVEL: nerve-artery-
+  vein lateral→medial order) correct appearance. The handout (exp-040, rev2) named three
+  failure "cracks": #1 stage-1 = the original ~50% problem (bypass with oracle pins), #2
+  image≠anatomy (2D projection / L-R flip breaks "lateral"), #3 LLM knowledge reliability.
+  Its fate-deciding question: "does the relation *correct* appearance or only *amplify* a
+  wrong stage-1?", to be settled cheaply by an oracle pre-verification (M-rel1), mirroring
+  how 032 closed SAM with an oracle. **Before** building any graph/inference, I measured a
+  precursor the handout did not enumerate — **crack #0: is a relational neighbour even
+  PRESENT on the page?** The relational term can only *fire* on a pin if another pin on the
+  same page is a graph-neighbour of it.
+- **What & How:** (a) Pure-metadata structural probe — per-page pin-count distribution and
+  the fraction of pins with a co-present relational neighbour (shared anatomical modifier,
+  or a NAVEL artery/vein/nerve bundle-mate). (b) Model-based **ceiling**: current best
+  engine (frozen dinov2_vitb14@518 → GaussianPool σ40 → exemplar class-max cosine),
+  10-seed page-split confusion matrix; for every *error*, check whether the true label has
+  a co-present same-page neighbour that a positional graph rule could use, and compute the
+  max global top1 gain a *perfect oracle* relational term could yield. Tightened the
+  "resolvable" predicate in stages to kill false positives: near-duplicate labels (`l
+  phrenic nerve ↔ phrenic nerve` = same structure), coincidental generic-modifier sharing
+  (`internal jugular vein ↔ internal oblique muscle` = neck vs abdomen), and cranial-nerve
+  markers ("cn" + roman numerals — the CN analog of the tissue word "nerve", not a region
+  name; two CNs sharing "cn" are as unresolvable as two arteries sharing "artery"). Then
+  restricted to what the term can *actually* fix: it is a tie-breaker that must not
+  overpower appearance (§2.3), so it only flips an error when the model swapped true↔partner,
+  the partner is co-present, AND appearance kept true within top-3 (rank≤3).
+- **Where:** 601 core / 215 classes / 369 pages / 31 PDFs.
+- **Result:** Structural — **58% of pages are single-pin** (213/369), a NAVEL bundle is
+  co-present for only **13% of vessel/nerve pins (4.8% of all)**; the femoral-triangle
+  worked example (N+A+V on one page) is the *exception*, not the rule. Ceiling — collapses
+  through four honest stages: loosest proxy **+9.8pp** → "true has any resolvable neighbour"
+  **+7.0pp** → NAVEL bundle present **+3.0pp** → pred=partner co-present (textbook swap)
+  **+0.8pp** → **REALISTIC (swap AND true≤rank3) = +0.4pp = 0.6 pins/seed.** Only **5**
+  genuinely-resolvable confusion pairs exist (lateral/medial condyle, s3/s4 ventral ramus,
+  pubic symphysis/tubercle, sup/inf gluteal artery, ext/int oblique), and **3/5 are
+  direction-dependent** (lateral/medial, sup/inf, ext/int) — exactly what crack #2 attacks;
+  invariant fraction 40%.
+- **Conclusion:** 🔴 **stop-but-hold (pre-registered).** A *perfect* oracle relational term
+  (oracle pins, oracle alignment, oracle graph) gains **+0.4pp ≈ 0.6 pins/seed**, fully
+  buried in the σ=3.6pp split noise — so M-rel1 cannot produce a trustworthy positive; the
+  handout's §5 "oracle flat ⇒ abandon" verdict is reached one stage *earlier and cheaper*,
+  at M-rel0. Crucially the bottleneck is **crack #0 (relational neighbours are structurally
+  absent: one structure pinned per photo) and crack #2 (the few real relations are
+  direction-dependent)** — both are functions of *data structure*, not of the model or the
+  graph, so no inference sophistication can beat them. This matches the project through-line
+  (data is the ceiling, §2): the relational axis is exhausted on the current 953 *exactly
+  like* the model axis (027–034) and reliability axis (037) — **but unlike them it is the
+  one axis that data expansion would directly revive** (multi-pin / bundle-co-labelled pages
+  dissolve crack #0). → Not killed; *held* for re-evaluation after data expansion. The graph
+  (`anat_graph.json`) and inference (`graph_inference.py`) builds in the handout are deferred,
+  not invalidated.
+- **Reproduce:** `scripts/confusion_pairs.py` (handout exp-040 §2.1 + §4 M-rel0).

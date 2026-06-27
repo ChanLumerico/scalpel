@@ -38,3 +38,4 @@
 | [036-mopt0-purify](036-mopt0-purify/report.md) | M-opt0 평가 정화 | 2026-06-27 | HP-selection 누수 1.5pp → 🟢 누수 거의 없음 — paired Δ·30개 숫자 신뢰 | cross-cadaver 갭 6.5pp (page-split ~44.1 vs unseen-PDF ~37.6) |
 | [037-conformal-kde](037-conformal-kde/report.md) | KDE posterior + Conformal + OOD | 2026-06-27 | ECE kde 0.181 vs base 0.367 (10/10) | AURC 0.344 vs 0.304 (1/10) | conf size kde 114.4 base 108.555 | xcadaver conf cover 0.877 (viol 2.3pp) |
 | [038-cadaver-invariant](038-cadaver-invariant/report.md) | Cross-cadaver 갭 분해 → cadaver-invariant | 2026-06-27 | 갭 0.1pp | 색조recovery -0.2pp (A3 stop) | A1 best λ0.3 cross +0.4(2/5) net -0.4 → 🔴  |
+| [040-rel-feasibility](040-rel-feasibility/report.md) | M-rel0 관계추론 feasibility (선결 게이트) | 2026-06-27 | top1 46.6±3.6 | 해결쌍 5(loose 13, 방향의존 3) | ⭐현실천장 +0.4pp(0.6 pins/seed, σ3.6에 묻힘) → STOP(crack#0=데이터한계, 폐기아닌 보류) |

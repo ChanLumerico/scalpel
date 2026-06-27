@@ -1,0 +1,54 @@
+{
+  "title": "M-rel0 관계추론 feasibility (선결 게이트)",
+  "date": "2026-06-27",
+  "headline": "top1 46.6±3.6 | 해결쌍 5(loose 13, 방향의존 3) | ⭐현실천장 +0.4pp(0.6 pins/seed, σ3.6에 묻힘) → STOP(crack#0=데이터한계, 폐기아닌 보류)",
+  "engine_top1": [
+    46.6,
+    3.6
+  ],
+  "err_rate_pct": 53.3,
+  "n_eval": 1509,
+  "n_wrong": 804,
+  "resolvable_pairs": [
+    [
+      "lateral condyle",
+      "medial condyle",
+      5
+    ],
+    [
+      "s3 ventral ramus",
+      "s4 ventral ramus",
+      4
+    ],
+    [
+      "pubic symphysis",
+      "pubic tubercle",
+      4
+    ],
+    [
+      "inferior gluteal artery",
+      "superior gluteal artery",
+      4
+    ],
+    [
+      "external oblique muscle",
+      "internal oblique muscle",
+      3
+    ]
+  ],
+  "n_resolvable_pairs": 5,
+  "n_loose_pairs": 13,
+  "n_dirdep_pairs": 3,
+  "invariant_frac_pct": 40.0,
+  "resolvable_share_pct": 4.4,
+  "ceiling_loose_pp": 9.8,
+  "ceiling_tight_pp": 7.0,
+  "ceiling_robust_pp": 5.3,
+  "ceiling_navel_pp": 3.0,
+  "ceiling_partner_pp": 0.8,
+  "ceiling_real_pp": 0.4,
+  "real_per_seed": 0.6,
+  "resc_of_err_pct": 13.2,
+  "dirdep_share_pct": 24.5,
+  "gate": "STOP"
+}
