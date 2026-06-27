@@ -906,13 +906,16 @@ runs in parallel, awaiting the pilot.
 - **When:** 2026-06-28.
 - **Why:** the old "exemplar≫mean / learned-head modest" verdicts were on the 953/leak-inflated
   data — re-check every aggregation/learned lever on 2.3× cleaner, leak-safe 502-way.
-- **What & How:** cached σ40 embeddings, 10-seed photo-block split. Methods: mean-proto,
-  exemplar(max), kNN-3/5, multi-proto(k-means), LSE, KDE, and a trained SupCon linear head
-  (768→256, 200 steps/seed) then exemplar. 7 diagnostic figures.
-- **Result:** **exemplar 1-NN still best, top1 31.6±4.1** — every alternative is worse or equal:
-  mean 26.7, multi-proto 30.2, kNN-3 28.3, kNN-5 22.2, LSE 24.0, KDE 24.8, **SupCon+exemplar
-  30.4 (−1.2, did NOT help)**. SupCon gave +2.6 on the old leaky data but nothing here → the old
-  gain was likely partly leak-driven. Diagnostics: **44% of errors are same-tissue** (intra-tissue
+- **What & How:** cached σ40 embeddings. **Nested multi-seed 3-way (§1.7):** fixed sealed dev/test
+  photo-block split (`scripts/split_devtest.py`, seed 20260628, test 20% = dev 1214 / test 337),
+  select on dev 10-seed CV, report final ONCE on the sealed test (bootstrap CI). Methods: mean-proto,
+  exemplar(max), kNN-3/5, multi-proto, LSE, KDE, and a trained SupCon head then exemplar.
+- **Result:** dev-CV: **exemplar best top1 28.9±3.0** (multi-proto 28.3, mean 24.4, kNN-3 26.0,
+  kNN-5 21.1, LSE 21.8, KDE 22.4, **SupCon 27.4 — did NOT help**; SupCon gave +2.6 on old leaky
+  data, nothing here → old gain partly leak-driven). **Sealed TEST (final, dev-selected exemplar):
+  top1 33.5 (95% CI 27.5–39.4), cov 79.8** — higher than dev-CV (the "−4.6pp" is a gallery-size
+  effect, full-dev gallery vs 70% CV folds, NOT selection leak → no leak). Wide CI = the 20%-sealed
+  (337-query) tradeoff. Diagnostics: **44% of errors are same-tissue** (intra-tissue
   confusion); per-tissue top1 muscle 43 ≫ vein 22 (vein hardest, DX3); **shot paradox — 2-shot
   38 > 6+ 27** (frequent classes are the common, confusable vessels/muscles, intrinsically harder,
   not a data-per-class deficit); risk-coverage: abstaining to 30–40% coverage lifts selective top1

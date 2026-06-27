@@ -12,12 +12,19 @@
 ## 1. 평가 철칙 (가장 중요 — 어기면 결론이 거짓이 됨)
 1. **항상 multi-seed (≥10), mean±std 보고.** 단일 seed는 ±3–4%p 노이즈 → 단일 seed로 결론 금지.
    (실제로 단일 seed의 "σ20 +2.8%p"는 거짓양성이었고 multi-seed가 즉시 기각했다.)
-2. **표본(specimen=PDF 페이지) 단위 분할.** 한 사진의 모든 트리플은 같은 쪽으로 묶는다(이미지 누수 차단).
+2. **photo-twin 블록 단위 분할 (이미지 누수 차단).** 한 사진의 모든 트리플은 같은 fold로 묶는다. ★
+   **거의 같은 사진도 같은 fold로** — merged 데이터는 QuizLink의 49%가 BlueLink 슬라이드와 *동일 사진*이라
+   (exp 041), 단순 specimen(페이지) split은 누수돼 ~46→21로 인플레됐다. **photo-twin 블록(exact∪corr≥0.90)
+   단위 분할 필수** (`scripts/split_devtest.py`의 블록).
 3. **방법 비교는 paired** (같은 분할에서 A vs B). 비대응 std로 작은 차이 논하지 말 것.
 4. **일반화 주장엔 cross-cadaver (PDF 단위) 분할로 교차검증.**
 5. **싼 프로브 먼저, 무거운 빌드 나중.** 효과를 싸게 확인하고 투자.
 6. **음성 결과도 동등하게 기록·보고.** (과적합·무효도 중요한 발견.)
-7. **test 재사용 주의.** 같은 test로 방법을 고르면 낙관 편향 → 최종 수치 주장은 3-way(train/val/test).
+7. **봉인 test + 멀티시드 = 중첩 3-way (둘 중 하나가 아니라 둘 다).** 멀티시드만으론 여러 방법/HP를 *같은*
+   eval로 고를 때 HP-선택 누수(exp 036서 ~1.5pp 실측)가 끼고, 단일 3-way는 ±3-4pp 노이즈로 결론 불안정.
+   → **dev/test를 한 번 고정 봉인**(`scripts/split_devtest.py`, seed 고정·test 20%·photo-block), **선택·튜닝은
+   dev에서만 10-seed CV**(mean±std), **최종 수치만 봉인 test 1회**(부트스트랩 CI). 순수 paired 방법비교(튜닝
+   없음)는 dev 멀티시드로 충분. test를 반복 들여다보면 점진 누수 — 한 번만.
 8. 무작위 기준선(=1/클래스수)과 비교해 배수로 의미 부여.
 
 ## 2. 데이터 품질이 모델보다 먼저
@@ -33,10 +40,15 @@
 - **실시험 문제 사진은 학습/평가/갤러리 어디에도 사용 금지.**
 
 ## 4. 모델 / 방법 (현재 베스트와 교훈)
-- **현재 베스트(학습-경량):** frozen DINOv2(vitb14) + 핀 GaussianPool(σ40) + **exemplar 1-NN** +
-  작은 SupCon 헤드 + 온도 보정/기권 → **215-way top1 49.2±4.3 / top5 65.8±3.9, 확신30% ~88%.**
-- 교훈: **최근접 exemplar ≫ 평균 프로토타입**(평균은 디테일을 뭉갬). 저용량 학습은 도움, **고용량은
-  과적합**(학습형 풀러·R-GCN 위험). 백본 키워도 한계효용. 맥락 concat은 top1 무효.
+- **현재 베스트:** frozen DINOv2(vitb14) + 핀 GaussianPool(σ40) + **exemplar 1-NN**.
+  ⚠️ 옛 "215-way top1 49.2"는 **누수 인플레**였음(exp 041 — 사진 49% 중복). **정직 수치(누수안전 merged
+  502-way, exp 043, 봉인 test §1.7):** dev-CV exemplar **28.9±3.0**, **봉인 test top1 33.5 (CI 27.5–39.4)**,
+  확신30% **~52%**. 데이터 확장이 검증된 레버
+  (+BlueLink → QuizLink Δtop1 +8.9/Δcov +10.1, 둘 다 10/10).
+- 교훈: **최근접 exemplar ≫ 평균 프로토타입**(누수안전서도 31.6 vs 26.7로 재확인). **SupCon 헤드는 누수안전
+  데이터선 도움 안 됨**(옛 +2.6은 부분 누수기반). 백본 키워도 한계, 맥락 concat·SAM·visual prompting·관계추론
+  전부 음성. **DINO-space는 부위로 조직화되지 조직형(동맥/정맥/신경)은 못 가름**(exp 042, artery↔vein cos 0.88).
+  → 천장 = 부위내 미세정체성; 모델 trick 아닌 데이터 또는 더 미세한 표현이 레버.
 
 ## 5. 로깅 규율 (연구 일지 — 빠짐없이)
 - **모든 실험 → `experiments/NNN-*/`**: 한글 `report.md` + figure + `metrics.json`. `explog.py`로 생성.

@@ -208,12 +208,16 @@ def main():
     cnt = collections.Counter(Y)
     core = [i for i in range(len(rows)) if cnt[Y[i]] >= 2]
     ncls = len(set(Y[i] for i in core))
-    print(f"{len(core)} core triples / {ncls} classes / device={device}")
+    # ★ fixed sealed dev/test (§1.7): select on dev 10-seed CV, final on sealed test once
+    from split_devtest import get_split
+    split = get_split()
+    dev_idx = [i for i in core if split[rows[i]["image"]] == "dev"]
+    test_idx = [i for i in core if split[rows[i]["image"]] == "test"]
+    print(f"{len(core)} core / {ncls} cls | dev {len(dev_idx)} / test {len(test_idx)} (sealed) | {device}")
 
-    # ---- method battery ----
+    # ---- method battery: 10-seed CV on DEV (selection) ----
     results = {}
-    per_method_seed = {m: [] for m in METHODS}
-    splits = [block_split(core, block, s) for s in range(SEEDS)]
+    splits = [block_split(dev_idx, block, s) for s in range(SEEDS)]
     for m, sc in METHODS.items():
         t1s, t5s, covs = [], [], []
         for tr, te in splits:
@@ -244,7 +248,27 @@ def main():
     base = results["exemplar"]["top1"][0]
     print(f"  SupCon+exemplar top1 {results['SupCon+exemplar']['top1'][0]} (vs exemplar {base})")
 
-    # ---- diagnostics on exemplar baseline (per-query over all seeds) ----
+    # ---- SEALED TEST (final, ONCE): gallery = all dev, query = sealed test ----
+    test_res = {}
+    for m, sc in METHODS.items():
+        out = evalu(sc, Z, Y, dev_idx, test_idx); rws, ncov, ntot = out
+        test_res[m] = (round(100 * np.mean([r[0] == r[1] for r in rws]), 1), round(100 * ncov / ntot, 1))
+    W = supcon_head(Z, Y, dev_idx, device=device); Zp = project(Z, W, device)
+    Zp = Zp / (np.linalg.norm(Zp, axis=1, keepdims=True) + 1e-9)
+    out = evalu(score_exemplar, Zp, Y, dev_idx, test_idx)
+    test_res["SupCon+exemplar"] = (round(100 * np.mean([r[0] == r[1] for r in out[0]]), 1), round(100 * out[1] / out[2], 1))
+    best_dev = max(results, key=lambda m: results[m]["top1"][0])  # selected ON DEV ONLY
+    scorer = score_exemplar if best_dev == "exemplar" else METHODS.get(best_dev, score_exemplar)
+    out = evalu(scorer, Z, Y, dev_idx, test_idx); rws = out[0]
+    corr = np.array([r[0] == r[1] for r in rws]); rng = np.random.default_rng(0)
+    boot = sorted(100 * corr[rng.integers(0, len(corr), len(corr))].mean() for _ in range(2000))
+    ci = (round(boot[50], 1), round(boot[1950], 1))
+    dev_best_t1 = results[best_dev]["top1"][0]
+    print(f"\n  ★ SEALED TEST — dev-selected best='{best_dev}': top1 {test_res[best_dev][0]} "
+          f"(95% CI {ci[0]}–{ci[1]}) cov {test_res[best_dev][1]} | dev-CV was {dev_best_t1} "
+          f"(optimism {round(dev_best_t1 - test_res[best_dev][0], 1)}pp)")
+
+    # ---- diagnostics on exemplar baseline (per-query over all DEV seeds) ----
     allrows = []
     for tr, te in splits:
         out = evalu(score_exemplar, Z, Y, tr, te)
@@ -279,12 +303,12 @@ def main():
     d = explog.EXP / "043-model-sweep"; d.mkdir(parents=True, exist_ok=True)
     order_m = ["mean-proto", "exemplar", "kNN-3", "kNN-5", "multi-proto", "LSE", "KDE", "SupCon+exemplar"]
 
-    # 1. method comparison (top1/top5/cov grouped)
+    # 1. method comparison: DEV-CV (selection) top1/top5 + SEALED-TEST top1
     explog.grouped_bar(d / "fig1_methods.png", order_m,
-                       {"top1": [results[m]["top1"][0] for m in order_m],
-                        "top5": [results[m]["top5"][0] for m in order_m],
-                        "coverage": [results[m]["cov"][0] for m in order_m]},
-                       "043 method comparison (merged 502-way, 10-seed leak-safe)", "%", ymax=90)
+                       {"dev-CV top1": [results[m]["top1"][0] for m in order_m],
+                        "dev-CV top5": [results[m]["top5"][0] for m in order_m],
+                        "SEALED-TEST top1": [test_res[m][0] for m in order_m]},
+                       "043 methods: dev-CV (selection) vs sealed-test (final), 502-way leak-safe", "%", ymax=90)
     # 2. accuracy by tissue (top1 vs top5)
     tt = sorted(by_t, key=lambda k: -by_t[k][1])
     explog.grouped_bar(d / "fig2_by_tissue.png", tt,
@@ -327,25 +351,29 @@ def main():
     ax.set_xlabel("softmax confidence"); ax.set_ylabel("density"); ax.legend()
     fig.tight_layout(); fig.savefig(d / "fig7_confidence.png", dpi=120); plt.close(fig)
 
-    best = max(order_m, key=lambda m: results[m]["top1"][0])
-    headline = (f"merged 502-way: best {best} top1 {results[best]['top1'][0]} | "
-                f"exemplar {results['exemplar']['top1'][0]} | SupCon {results['SupCon+exemplar']['top1'][0]} | "
-                f"errors same-tissue {round(100*same_t/max(1,n_err))}% (DX3)")
+    headline = (f"dev-선택 best={best_dev} → 봉인 TEST top1 {test_res[best_dev][0]} (CI {ci[0]}–{ci[1]}) "
+                f"cov {test_res[best_dev][1]} | dev-CV {dev_best_t1} (낙관 {round(dev_best_t1-test_res[best_dev][0],1)}pp) | "
+                f"SupCon test {test_res['SupCon+exemplar'][0]} | errors same-tissue {round(100*same_t/max(1,n_err))}%")
     method_rows = "\n".join(
-        f"| {m} | {results[m]['top1'][0]}±{results[m]['top1'][1]} | {results[m]['top5'][0]} | {results[m]['cov'][0]} |"
+        f"| {m} | {results[m]['top1'][0]}±{results[m]['top1'][1]} | {results[m]['top5'][0]} | {results[m]['cov'][0]} | **{test_res[m][0]}** |"
         for m in order_m)
     tis_rows = "\n".join(f"| {k} | {by_t[k][0]} | {by_t[k][1]:.0f} | {by_t[k][2]:.0f} |" for k in tt)
-    report = f"""# 043 — 모델 방법론 스윕 (clean merged, 누수안전)
+    report = f"""# 043 — 모델 방법론 스윕 (clean merged, 중첩 멀티시드 3-way)
 
 - 날짜: {datetime.date.today().isoformat()}
 - 커밋: `data-pivot @ {_git_sha()}`
 - 스크립트: `scripts/model_sweep.py` · 데이터 `data/merged_final` ({len(core)} core / {ncls} cls)
-- 엔진: frozen dinov2_vitb14@518 → GaussianPool σ40 (캐시), {SEEDS}-seed photo-block split
+- 엔진: frozen dinov2_vitb14@518 → GaussianPool σ40 (캐시)
+- ★ 프로토콜(§1.7): **dev {len(dev_idx)} / 봉인 test {len(test_idx)}** photo-block. 선택은 dev 10-seed CV,
+  **최종은 봉인 test 1회**. dev로 best를 고르고 → 그 수치만 test로 보고(부트스트랩 CI).
 
-## 방법 비교
-| 방법 | top1 | top5 | coverage |
-|---|---|---|---|
+## 방법 비교 (dev-CV = 선택 / 봉인 TEST = 최종)
+| 방법 | dev-CV top1 | dev top5 | dev cov | **봉인 TEST top1** |
+|---|---|---|---|---|
 {method_rows}
+
+- **dev-선택 best = `{best_dev}` → 봉인 TEST top1 {test_res[best_dev][0]}** (95% CI {ci[0]}–{ci[1]}, cov {test_res[best_dev][1]});
+  dev-CV는 {dev_best_t1} → **HP-선택 낙관 {round(dev_best_t1-test_res[best_dev][0],1)}pp** (exp036 ~1.5pp와 정합).
 
 ![methods](fig1_methods.png)
 
@@ -363,19 +391,24 @@ def main():
 ![confidence](fig7_confidence.png)
 
 ## 핵심
-- **오류의 {round(100*same_t/max(1,n_err))}%가 같은 조직형 내 혼동** — 외형으로 조직형은 OK, 조직형 *내* 미세정체성이 천장(DX3, exp042 기하와 일치).
-- 집계방법: best = {best}. (옛 953에서 exemplar≫mean였는데 누수안전 502에서 재확인.)
-- SupCon 학습헤드: top1 {results['SupCon+exemplar']['top1'][0]} vs exemplar {results['exemplar']['top1'][0]}.
-- shot↑일수록 정확도↑ (long-tail 레버 = 데이터).
+- **봉인 test 최종: `{best_dev}` top1 {test_res[best_dev][0]}** (CI {ci[0]}–{ci[1]}) — 선택누수 제거한 정직 수치.
+  dev-CV {dev_best_t1}와의 낙관 {round(dev_best_t1-test_res[best_dev][0],1)}pp는 작아 결론 안전.
+- 집계방법: dev best = {best_dev} (옛 953에서 exemplar≫mean였는데 누수안전 502에서도 재확인).
+- **SupCon 학습헤드는 도움 안 됨** (test {test_res['SupCon+exemplar'][0]} vs exemplar {test_res['exemplar'][0]}) — 옛 +2.6은 부분 누수기반.
+- **오류의 {round(100*same_t/max(1,n_err))}%가 같은 조직형 내 혼동** — 조직형 *내* 미세정체성이 천장(DX3, exp042 기하와 일치).
+- shot 역설: 빈번 클래스가 더 어려움(흔한 혈관/근육 혼동) — 데이터-부족 아닌 내재 난이도.
 """
     explog.write(d, report, {
-        "title": "모델 방법론 스윕 (clean merged)", "date": datetime.date.today().isoformat(),
+        "title": "모델 방법론 스윕 (중첩 멀티시드 3-way)", "date": datetime.date.today().isoformat(),
         "headline": headline, "n_core": len(core), "ncls": ncls,
-        "methods": {m: results[m] for m in order_m},
+        "n_dev": len(dev_idx), "n_test": len(test_idx),
+        "dev_cv": {m: results[m] for m in order_m},
+        "sealed_test": {m: {"top1": test_res[m][0], "cov": test_res[m][1]} for m in order_m},
+        "dev_best": best_dev, "test_best_top1": test_res[best_dev][0], "test_ci": list(ci),
+        "hp_selection_optimism_pp": round(dev_best_t1 - test_res[best_dev][0], 1),
         "by_tissue": {k: {"n": by_t[k][0], "top1": round(by_t[k][1], 1), "top5": round(by_t[k][2], 1)} for k in tt},
         "by_shot": {k: round(by_shot.get(k, (1, 0, 0))[1], 1) for k in sk},
-        "errors_same_tissue_pct": round(100 * same_t / max(1, n_err), 1),
-        "best_method": best})
+        "errors_same_tissue_pct": round(100 * same_t / max(1, n_err), 1)})
     print(f"\nwrote -> {d}  (7 figures)")
     return 0
 
