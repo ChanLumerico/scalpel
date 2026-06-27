@@ -1080,3 +1080,22 @@ runs in parallel, awaiting the pilot.
   Across the whole program, only data scale (041: +8.9/+10.1) and input resolution (045: +2.6) ever moved
   the leak-safe ceiling. The remaining validated lever is **data**.
 - **Reproduce:** `scripts/lora_reshape.py`.
+
+## Phase 15 — Autonomous search: training-free retrieval & embedding theory (overnight)
+
+### 051 — retrieval re-ranking (CSLS / AQE / local-scaling) — CSLS adopted, a small principled win
+- **When:** 2026-06-28 (autonomous).
+- **Why:** the readout is gallery retrieval; the re-ID literature has training-free rerankers for two
+  known kNN failure modes — hubness (CSLS: some gallery vectors are everyone's neighbour) and
+  non-reciprocity (AQE/k-reciprocal). Pure linear algebra on cached embeddings (cheap-probe-first).
+- **What & How:** modify the instance-instance similarity, keep the class-max readout. CSLS(q,g) =
+  2cos − r_q − r_g (r = mean of top-k sims); AQE (augment query with top-m gallery mean); local-scaling
+  (self-tuning by kNN scale). Swept k/m. dev 10-seed CV paired vs cosine baseline (global+L256, 33.5).
+- **Result:** **CSLS k=5 adopted** — dev-CV **34.1 (Δ+0.61, 7/10)**; sealed test **36.1 → 38.3**. CSLS
+  k=8/15 also positive but <7/10. AQE hurt (m=3 −2.32, m=7 −3.45 — query expansion pulls in wrong-class
+  neighbours). local-scaling marginal (+0.37, 6/10).
+- **Conclusion:** mild hubness exists and CSLS corrects it for a small, principled gain — the second
+  leak-safe lever after resolution. New best = global+L256 + CSLS(k=5) readout, **sealed 38.3** (effect
+  small, CI overlaps 36.1, so report as modest not decisive). AQE's failure confirms the errors are not
+  fixed by neighbourhood averaging (consistent with 047 — partners aren't co-retrieved).
+- **Reproduce:** `scripts/rerank_retrieval.py`.
