@@ -1,0 +1,95 @@
+{
+  "title": "KDE posterior + Conformal + OOD",
+  "date": "2026-06-27",
+  "headline": "ECE kde 0.181 vs base 0.367 (10/10) | AURC 0.344 vs 0.304 (1/10) | conf size kde 114.4 base 108.555 | xcadaver conf cover 0.877 (viol 2.3pp)",
+  "primary": {
+    "top1": [
+      40.786,
+      4.991
+    ],
+    "ece_kde": [
+      0.181,
+      0.108
+    ],
+    "ece_base": [
+      0.367,
+      0.048
+    ],
+    "aurc_kde": [
+      0.344,
+      0.048
+    ],
+    "aurc_base": [
+      0.304,
+      0.048
+    ],
+    "conf_cover_kde": [
+      0.92,
+      0.038
+    ],
+    "conf_size_kde": [
+      114.4,
+      16.568
+    ],
+    "conf_cover_base": [
+      0.916,
+      0.037
+    ],
+    "conf_size_base": [
+      108.555,
+      17.074
+    ],
+    "ood_auroc_kde": [
+      0.611,
+      0.077
+    ],
+    "ood_auroc_base": [
+      0.687,
+      0.064
+    ],
+    "nclass": [
+      172,
+      3.194
+    ]
+  },
+  "primary_paired": {
+    "aurc_wins": 1,
+    "ece_wins": 10,
+    "ood_wins": 0,
+    "adopt_aurc": false,
+    "adopt_ece": true
+  },
+  "crosscadaver": {
+    "top1": [
+      43.309,
+      4.278
+    ],
+    "ece": [
+      0.234,
+      0.102
+    ],
+    "aurc": [
+      0.298,
+      0.035
+    ],
+    "cover_kde": [
+      0.877,
+      0.054
+    ],
+    "size_kde": [
+      103.328,
+      14.508
+    ],
+    "cover_base": [
+      0.866,
+      0.042
+    ],
+    "size_base": [
+      96.124,
+      12.203
+    ]
+  },
+  "conformal_violation_kde_pp": 2.3,
+  "conformal_violation_base_pp": 3.4,
+  "alpha": 0.1
+}

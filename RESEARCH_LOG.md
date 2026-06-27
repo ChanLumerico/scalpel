@@ -703,3 +703,36 @@ runs in parallel, awaiting the pilot.
   (~37–40) together; keep page-split for history-comparable paired Δ, treat cross-cadaver
   as the deployment-honest figure. 037+ keep dev/holdout discipline.
 - **Reproduce:** `scripts/mopt0.py`.
+
+### 037 — KDE posterior + Conformal + OOD (reliability/coverage layer)
+- **When:** 2026-06-27.
+- **Why:** Replace the heuristic softmax-cosine confidence with a principled density
+  model: KDE posterior p(y|z)∝π(y)Σ_e exp((cos−1)/h²) for a *calibrated* posterior, a
+  split-conformal layer for *guaranteed* prediction sets, and the marginal density p(z)
+  as an OOD/OOV score. Primary axis = AURC (per OPT_HANDOUT §5). Pitfall #2 guard: verify
+  KDE ECE vs the global-temperature baseline PAIRED. 🔴 key: does a conformal set fit on
+  page-split hold its 1−α coverage on cross-cadaver (exchangeability break)?
+- **What & How:** Prediction = the SAME exemplar argmax for both methods (top1 identical,
+  isolating *confidence* quality). h fit on gallery-LOO likelihood; global-temp s likewise.
+  3-way specimen split (gallery 50% / cal 20% / test 30%), 10 seeds page-split PRIMARY +
+  5-fold unseen-PDF cross-cadaver report. α=0.1.
+- **Where:** ≥2 core (top1 40.8 on the 50% gallery; lower than 50.4 LOO by construction).
+- **Result:** ECE kde **0.181** vs base 0.367 (kde better **10/10**) — KDE clearly better
+  *calibrated*. BUT AURC kde 0.344 vs base **0.304** (kde better **1/10**) — the
+  selective-prediction *ranking* does NOT improve; global-temp is better. OOD AUROC kde
+  0.611 vs base **0.687** (0/10) — plain max-cosine separates OOV better than KDE density.
+  Conformal: coverage holds (kde 0.92, base 0.916 ≈ target 0.9) but **average set size
+  ≈110 of ~172 classes** (vs top5=5) — useless. 🔴 cross-cadaver conformal coverage 0.877
+  (violation only **2.3pp**) — the guarantee mostly survives the shift.
+- **Conclusion:** Largely NEGATIVE — the handout's pitfall #2 ("elegant theory, flat
+  measurement") realized. The principled density improves *absolute* calibration (ECE) but
+  not the actionable axes: selective-prediction ranking (AURC) is no better than the
+  existing global-temperature heuristic, conformal sets are far too large to be useful at
+  this accuracy (the "guaranteed-but-huge" caveat), and max-cosine is a better OOD score
+  than KDE density. The KDE prior π(y) likely distorts the confidence ranking (over-trusts
+  frequent classes). Net: the existing global-temp + abstention is already near-optimal for
+  selective prediction; KDE's only win (calibrated probabilities) is non-actionable on
+  AURC. *Good* news from the 🔴 check: conformal's coverage guarantee degrades only ~2–3pp
+  cross-cadaver, so it is not same-cadaver-only. Reliability axis adds no operating-point
+  gain; the open lever is COVERAGE (038/039), not confidence.
+- **Reproduce:** `scripts/conformal_kde.py`.

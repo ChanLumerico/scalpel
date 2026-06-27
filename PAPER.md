@@ -164,6 +164,7 @@ relational expert (R-GCN), and PoE fusion, none adopted as of this report (§6.4
 | 033 | thin-gated SAM pooling (final SAM verdict) | rejected: thin Δ−2.0 (1/10); mask-gating hurts even vessels — SAM closed |
 | 034 | visual prompting (q at backbone input) | rejected: best Δ−0.1 (4/10); marker encodes location but CLS top1≈39≪46.6 — model axis closed |
 | 036 | M-opt0 eval purification | HP-selection leak ~1.5pp (paired Δ stand); cross-cadaver gap ~6.5pp (page-split same-cadaver-optimistic) |
+| 037 | KDE posterior + conformal + OOD | ECE↓ (0.18 vs 0.37) but AURC flat & conformal sets ~110/172 useless; reliability heuristics already near-optimal |
 
 ---
 

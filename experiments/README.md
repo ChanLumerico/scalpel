@@ -36,3 +36,4 @@
 | [033-sam-thingate](033-sam-thingate/report.md) | thin-게이팅 SAM 풀링 (최종 판정) | 2026-06-27 | thin Δtop1 -2.0(1/10) → 기각; SAM 전 형태 종결(DX4/032/033) |
 | [034-visual-prompt](034-visual-prompt/report.md) | Visual prompting | 2026-06-27 | best red-dot8-gpool Δtop1 -0.1(4/10) → 기각 |
 | [036-mopt0-purify](036-mopt0-purify/report.md) | M-opt0 평가 정화 | 2026-06-27 | HP-selection 누수 1.5pp → 🟢 누수 거의 없음 — paired Δ·30개 숫자 신뢰 | cross-cadaver 갭 6.5pp (page-split ~44.1 vs unseen-PDF ~37.6) |
+| [037-conformal-kde](037-conformal-kde/report.md) | KDE posterior + Conformal + OOD | 2026-06-27 | ECE kde 0.181 vs base 0.367 (10/10) | AURC 0.344 vs 0.304 (1/10) | conf size kde 114.4 base 108.555 | xcadaver conf cover 0.877 (viol 2.3pp) |
