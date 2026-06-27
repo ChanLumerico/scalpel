@@ -1,13 +1,18 @@
 # 042 — EDA: DINO-space 클래스 중심점 기하
 
 - 날짜: 2026-06-28
-- 커밋: `data-pivot @ 7547a7b`
+- 커밋: `data-pivot @ 40ff0f8`
 - 스크립트: `scripts/eda_dino_space.py` · 데이터: `data/merged_final` (2230 triples / 502 core classes)
 - 엔진: frozen dinov2_vitb14@518 → GaussianPool σ40 → 클래스 평균 = 중심점, t-SNE(cosine) 2D
 
-## 2D 중심점 분포
+## 2D 중심점 분포 + 밀도
 ![tissue](fig_centroids_tissue.png)
 ![region](fig_centroids_region.png)
+![density-tissue](fig_density.png)
+![density-region](fig_density_region.png)
+> 밀도 figure: instance를 Gaussian KDE로(파이프라인의 p(z|y) 추정방식, exp037) 채운 등고선 + 클래스
+> 중심점(얇은 진한 테두리). 조직형(위): artery(빨강)·vein(파랑) 밀도가 같은 영역에 겹침 = DX3.
+> 부위(아래): 부위별 밀도가 더 분리돼 뭉침(DINO가 부위로 조직화).
 
 ## 기하 통계
 | 항목 | 값 |

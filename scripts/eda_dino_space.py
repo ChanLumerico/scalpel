@@ -82,11 +82,16 @@ def main():
     Y = [r["label"] for r in rows]
     region = [r.get("region", "") for r in rows]
     print(f"{len(rows)} triples / {len(set(Y))} classes")
-    bb = DinoBackbone(cfg.backbone); bb.ensure_loaded(); bb.to(device)
-    pool = GaussianPool(cfg.point).to(device); centers = bb.patch_centers(device)
-    print("embedding (DINOv2 + GaussianPool σ40)...")
-    Z = embed(rows, bb, pool, centers, S, device)
-    Z = Z / (np.linalg.norm(Z, axis=1, keepdims=True) + 1e-9)
+    cache = BASE / "_dino_cache.npy"
+    if cache.exists() and np.load(cache, mmap_mode="r").shape[0] == len(rows):
+        print("loaded cached DINO embeddings"); Z = np.load(cache).astype(np.float32)
+    else:
+        bb = DinoBackbone(cfg.backbone); bb.ensure_loaded(); bb.to(device)
+        pool = GaussianPool(cfg.point).to(device); centers = bb.patch_centers(device)
+        print("embedding (DINOv2 + GaussianPool σ40)...")
+        Z = embed(rows, bb, pool, centers, S, device)
+        Z = Z / (np.linalg.norm(Z, axis=1, keepdims=True) + 1e-9)
+        np.save(cache, Z)
 
     # ---- per-class centroids (core >=2) ----
     by_c = collections.defaultdict(list)
@@ -140,7 +145,7 @@ def main():
         if not m:
             continue
         ax.scatter(emb[m, 0], emb[m, 1], s=[8 + 4 * freq[k] for k in m], c=TCOLORS[t],
-                   label=f"{t} ({len(m)})", alpha=0.75, edgecolors="white", linewidths=0.3)
+                   label=f"{t} ({len(m)})", alpha=0.8, edgecolors="#1a1a1a", linewidths=0.5)
     ax.set_title("DINO-space class centroids (502 core classes) — t-SNE, coloured by tissue type")
     ax.legend(loc="best", framealpha=0.9); ax.set_xticks([]); ax.set_yticks([])
     fig.tight_layout(); fig.savefig(d / "fig_centroids_tissue.png", dpi=130); plt.close(fig)
@@ -174,13 +179,78 @@ def main():
             (rwithin if ri == rj else racross).append(float(C[i, j]))
     cmap = plt.get_cmap("tab10")
     fig, ax = plt.subplots(figsize=(11, 9))
-    ax.scatter(emb[:, 0], emb[:, 1], s=14, c="#dddddd", alpha=0.4)
+    ax.scatter(emb[:, 0], emb[:, 1], s=14, c="#dddddd", alpha=0.4, edgecolors="#bbbbbb", linewidths=0.3)
     for ri, rr in enumerate(topreg):
         m = [k for k in range(len(labels)) if cls_region[labels[k]] == rr]
-        ax.scatter(emb[m, 0], emb[m, 1], s=22, color=cmap(ri % 10), label=f"{rr} ({len(m)})", alpha=0.8)
+        ax.scatter(emb[m, 0], emb[m, 1], s=26, color=cmap(ri % 10), label=f"{rr} ({len(m)})",
+                   alpha=0.85, edgecolors="#1a1a1a", linewidths=0.5)
     ax.set_title("DINO-space class centroids — coloured by anatomical region")
     ax.legend(loc="best", fontsize=8, framealpha=0.9); ax.set_xticks([]); ax.set_yticks([])
     fig.tight_layout(); fig.savefig(d / "fig_centroids_region.png", dpi=130); plt.close(fig)
+
+    # Figure 3: per-tissue DENSITY heatmap (Gaussian KDE — mirrors the pipeline's p(z|y), exp037)
+    # over an INSTANCE t-SNE, with class centroids scattered on top (thin dark edge).
+    from scipy.stats import gaussian_kde
+    print("t-SNE on instances (for density)...")
+    inst = [i for l in labels for i in core[l]]
+    embi = TSNE(n_components=2, perplexity=30, init="pca", random_state=0,
+                metric="cosine").fit_transform(Z[inst])
+    ti = [tissue(Y[i]) for i in inst]
+    pos = {l: [] for l in labels}
+    for k, i in enumerate(inst):
+        pos[Y[i]].append(embi[k])
+    c2d = {l: np.mean(pos[l], 0) for l in labels}
+    xs, ys = embi[:, 0], embi[:, 1]
+    px, py = (xs.max() - xs.min()) * 0.04, (ys.max() - ys.min()) * 0.04
+    gx, gy = np.mgrid[xs.min() - px:xs.max() + px:220j, ys.min() - py:ys.max() + py:220j]
+    grid = np.vstack([gx.ravel(), gy.ravel()])
+    fig, ax = plt.subplots(figsize=(12, 9.5))
+    for t in ["other", "muscle", "nerve", "vein", "artery"]:
+        P = embi[[k for k in range(len(inst)) if ti[k] == t]]
+        if len(P) < 6:
+            continue
+        dens = gaussian_kde(P.T)(grid).reshape(gx.shape)
+        lev = np.linspace(dens.max() * 0.30, dens.max(), 6)
+        ax.contourf(gx, gy, dens, levels=lev, colors=TCOLORS[t], alpha=0.15)
+        ax.contour(gx, gy, dens, levels=lev[-2:], colors=TCOLORS[t], alpha=0.55, linewidths=0.9)
+    for t in ["other", "bone", "muscle", "nerve", "vein", "artery"]:
+        m = [l for l in labels if tissue(l) == t]
+        if not m:
+            continue
+        P = np.array([c2d[l] for l in m])
+        ax.scatter(P[:, 0], P[:, 1], s=[10 + 5 * len(core[l]) for l in m], c=TCOLORS[t],
+                   label=f"{t} ({len(m)})", alpha=0.92, edgecolors="#161616", linewidths=0.6)
+    ax.set_title("DINO-space per-tissue density (Gaussian KDE ≈ pipeline p(z|y)) + class centroids")
+    ax.legend(loc="best", framealpha=0.9); ax.set_xticks([]); ax.set_yticks([])
+    fig.tight_layout(); fig.savefig(d / "fig_density.png", dpi=130); plt.close(fig)
+
+    # Figure 4: per-REGION density (Gaussian KDE) + centroids (dark edge) — regions cluster
+    # tighter than tissue (sep 0.10) so the heatmap is cleaner / more separated.
+    inst_reg = [cls_region[Y[i]] for i in inst]
+    cmap2 = plt.get_cmap("tab10")
+    fig, ax = plt.subplots(figsize=(12, 9.5))
+    for ri, rr in enumerate(topreg):
+        P = embi[[k for k in range(len(inst)) if inst_reg[k] == rr]]
+        if len(P) < 6:
+            continue
+        dens = gaussian_kde(P.T)(grid).reshape(gx.shape)
+        lev = np.linspace(dens.max() * 0.35, dens.max(), 6)
+        ax.contourf(gx, gy, dens, levels=lev, colors=[cmap2(ri % 10)], alpha=0.16)
+        ax.contour(gx, gy, dens, levels=lev[-2:], colors=[cmap2(ri % 10)], alpha=0.6, linewidths=0.9)
+    base_m = [l for l in labels if cls_region[l] == "other"]
+    if base_m:
+        Pb = np.array([c2d[l] for l in base_m])
+        ax.scatter(Pb[:, 0], Pb[:, 1], s=12, c="#dddddd", alpha=0.4, edgecolors="#bbbbbb", linewidths=0.3)
+    for ri, rr in enumerate(topreg):
+        m = [l for l in labels if cls_region[l] == rr]
+        if not m:
+            continue
+        P = np.array([c2d[l] for l in m])
+        ax.scatter(P[:, 0], P[:, 1], s=[12 + 5 * len(core[l]) for l in m], color=cmap2(ri % 10),
+                   label=f"{rr} ({len(m)})", alpha=0.9, edgecolors="#161616", linewidths=0.6)
+    ax.set_title("DINO-space per-region density (Gaussian KDE) + class centroids")
+    ax.legend(loc="best", fontsize=8, framealpha=0.9); ax.set_xticks([]); ax.set_yticks([])
+    fig.tight_layout(); fig.savefig(d / "fig_density_region.png", dpi=130); plt.close(fig)
 
     ms = lambda v: (round(float(st.mean(v)), 3), round(float(st.pstdev(v)), 3)) if v else (float("nan"), 0.0)
     report = f"""# 042 — EDA: DINO-space 클래스 중심점 기하
@@ -190,9 +260,14 @@ def main():
 - 스크립트: `scripts/eda_dino_space.py` · 데이터: `data/merged_final` ({len(rows)} triples / {len(labels)} core classes)
 - 엔진: frozen dinov2_vitb14@518 → GaussianPool σ40 → 클래스 평균 = 중심점, t-SNE(cosine) 2D
 
-## 2D 중심점 분포
+## 2D 중심점 분포 + 밀도
 ![tissue](fig_centroids_tissue.png)
 ![region](fig_centroids_region.png)
+![density-tissue](fig_density.png)
+![density-region](fig_density_region.png)
+> 밀도 figure: instance를 Gaussian KDE로(파이프라인의 p(z|y) 추정방식, exp037) 채운 등고선 + 클래스
+> 중심점(얇은 진한 테두리). 조직형(위): artery(빨강)·vein(파랑) 밀도가 같은 영역에 겹침 = DX3.
+> 부위(아래): 부위별 밀도가 더 분리돼 뭉침(DINO가 부위로 조직화).
 
 ## 기하 통계
 | 항목 | 값 |
