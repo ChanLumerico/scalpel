@@ -174,6 +174,7 @@ relational expert (R-GCN), and PoE fusion, none adopted as of this report (§6.4
 | 045 | **multiscale high-res local (M-rep0)** + tissue/colour gates | ⭐ **first leak-safe ceiling crack**: high-res local crop ⊕ global → dev-CV 28.9→**33.5 (Δ+4.65, 10/10)**, sealed-test 33.5→**36.1** (CI 30.1–42.0) — bottleneck includes *input resolution*. Tissue-oracle Δ+6.4pp (gate headroom). artery-vs-vein AUC: colour 0.77 / DINO 0.76 — cue *is* in input & DINO encodes it linearly; the 042 "DINO can't tell" was a nearest-exemplar readout artifact, not a missing axis |
 | 046 | M-rep2: tissue-aware soft-gate readout | honest negative — soft-gate λ=0.05 Δ−0.17 (3/10), conf-gate +0.35 (6/10), hard −7.0 (error propagation). Stage-1 tissue acc 65.5% too low to realize the +6.4 oracle; exemplar already uses DINO's implicit tissue axis → explicit weaker gate is redundant+noisy. The artery/vein lever is NOT a post-hoc gate (→ learned repr or more resolution/data) |
 | 047 | M-rep0c: relational-axis revival (040 re-run) | crack #0 dissolved (multi-pin 42%→66.6%) but axis still capped: realistic ceiling 040 +0.4 → +0.8pp (1.8 pins/seed) < σ 2.9; errors are mostly cross-region look-alikes, not co-present-partner swaps; direction-dependence 38% (crack #2) persists. 🔴 STOP — needs bundle-colabeled pages, not generic multi-pin density |
+| 048 | M-rep0 refinement (resolution saturated) | global+L256 (045) is the single-local sweet spot; α-weight best α=0.7 dev +0.25 (6/10, noise), L128 −4.3, L256-CLS −4.9, fraction −0.5, +L128+L256 −3.0 — tighter/CLS/fraction/extra-scale all regress. Resolution lever captured its gain in one shot (045) and is now closed → learned repr (M-rep1) or data |
 
 ---
 
@@ -392,7 +393,7 @@ ultimate goal (real deployment):
 - Every experiment is logged under `experiments/NNN-*/` with a report, figures, and `metrics.json`.
   Figures containing cadaver imagery are saved as `*.private.png` and git-ignored.
 
-*Document version: `main`. Through exp 047. Four axes exhausted on the fixed 953 (model
+*Document version: `main`. Through exp 048. Four axes exhausted on the fixed 953 (model
 008–034, reliability 037, cross-cadaver 038, relational 040) — all converge on data-bound ceiling.
 **Acted on it (Phase 13):** harvested +462 BlueLink labeled multi-pin slides → clean leak-safe
 merged dataset (711 photos / 2230 triples / **502 core = 2.3×**). exp 041 precise re-eval delivered
@@ -418,6 +419,9 @@ redundant (hard gate −7.0 = error propagation); the artery/vein lever is not a
 the relational axis (M-rep0c) on the now-66.6%-multi-pin data dissolved 040's crack #0 but the realistic
 relational ceiling only doubled to +0.8pp (1.8 pins/seed, still < σ): the errors are cross-region
 look-alikes, not co-present-partner swaps, and direction-dependence (crack #2, 38%) persists. **Net:
-of the three representation gates, only resolution (M-rep0) delivered.** Forward: more resolution/fusion
-work or a *learned* representation (M-rep1 tissue-contrastive/LoRA, untested) on top of global+L256;
-relational needs bundle-colabeled pages, not generic multi-pin density.*
+of the three representation gates, only resolution (M-rep0) delivered.** exp 048 then showed the
+resolution lever is **saturated** — α-weighting, tighter L128, fraction crops, CLS pooling, and extra
+scales all fail to beat global+L256, so 045 captured the resolution gain in one shot (sealed 36.1).
+Forward now narrows to a *learned* representation (M-rep1 tissue-contrastive/LoRA on global+L256,
+untested) or the validated data lever; relational needs bundle-colabeled pages, not generic multi-pin
+density.*

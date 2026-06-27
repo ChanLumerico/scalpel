@@ -1009,3 +1009,24 @@ runs in parallel, awaiting the pilot.
   data**; it would need bundle-colabeled pages targeted on purpose (femoral/renal/suprascapular triangles),
   not generic multi-pin density. Honest negative; hold (not discard).
 - **Reproduce:** `scripts/multiscale_relational.py`.
+
+### 048 — M-rep0 refinement: the resolution lever is saturated at 045 (clean negative)
+- **When:** 2026-06-28.
+- **Why:** extend the one delivering lever (M-rep0). 045 found stacking *more* scales dilutes
+  (global+L256+L512 < global+L256), so the lever is a *better single local crop*, not more scales.
+  Four cheap probes on top of global+L256: (a) α-weighted fusion `unit([z_g ; α·z_l])`, (b) tighter
+  L128 zoom, (c) fraction crop (0.25·min(H,W), consistent zoom across 39–2995 px images), (d) local
+  CLS pooling vs σ40-at-centre.
+- **What & How:** re-embed L128 / frac0.25 / L256-CLS (cached), α-sweep free on cached global+L256.
+  dev 10-seed CV select, sealed test once. Baseline = global+L256 (045).
+- **Result:** **no additional gain.** best = global+α·L256 (α=0.7) dev **33.8 (Δ+0.25 vs L256, 6/10)** —
+  fails the ≥7/10 bar; sealed test 35.3 < L256's 36.1 (within CI). All other refinements WORSE:
+  L128 29.3 (−4.26), L256-CLS 28.7 (−4.86, σ40-centre ≫ CLS — the structure is at the crop centre),
+  frac0.25 33.0 (−0.54), L128+L256 30.5 (−3.04, stacking dilutes again).
+- **Conclusion:** the resolution lever **captured essentially all its gain in one shot (045, global+L256,
+  sealed 36.1) and is now saturated.** A 256-px q-centred crop, σ40-pooled at centre, fused equal-weight
+  with the global embedding, is the single-local sweet spot; tighter / CLS / fraction / extra-scale all
+  regress. The α=0.7 hint is inside split noise. Resolution axis closed. Forward narrows to a *learned*
+  representation (M-rep1 tissue-contrastive/LoRA, untested) or the validated data lever — not more
+  resolution tuning.
+- **Reproduce:** `scripts/multiscale_refine.py`.

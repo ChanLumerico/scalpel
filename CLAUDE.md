@@ -55,8 +55,10 @@
   게이트는 중복+노이즈(hard-gate −7.0=오류전파). **artery/vein 레버는 post-hoc 게이트 아님.** ⓑ **관계축
   부활(M-rep0c)도 STOP** — 다중핀 42→66.6%로 crack#0 해소됐으나 현실 천장 +0.4→+0.8pp(1.8/seed)로 σ에 묻힘
   (오류가 동석-파트너 swap이 아니라 부위넘는 lookalike, 방향의존 38% 잔존). **3게이트 중 해상도(M-rep0)만 유효.**
-  → 다음 레버: 고해상 위 추가 fusion/스케일 또는 **학습형 표현(M-rep1 tissue-contrastive/LoRA, 미시도)**; 데이터
-  확장(검증된 +8.9/+10.1); 관계축은 다발-동시라벨 페이지 타게팅(generic 다중핀 아님).
+- **해상도 레버는 045에서 포화(exp 048):** α-가중(best α0.7 +0.25 6/10 노이즈)·더타이트 L128(−4.3)·CLS(−4.9)·
+  fraction(−0.5)·스케일추가(−3.0) 전부 global+L256 못 넘음 → 256px center-σ40 등가중 fusion이 단일-로컬 sweet
+  spot, 이득은 045서 한 방에 소진. → 남은 미시도 레버: **학습형 표현(M-rep1 tissue-contrastive/LoRA, global+L256
+  위)** 또는 데이터 확장(검증된 +8.9/+10.1); 관계축은 다발-동시라벨 페이지 타게팅(generic 다중핀 아님).
 
 ## 5. 로깅 규율 (연구 일지 — 빠짐없이)
 - **모든 실험 → `experiments/NNN-*/`**: 한글 `report.md` + figure + `metrics.json`. `explog.py`로 생성.
