@@ -1055,3 +1055,28 @@ runs in parallel, awaiting the pilot.
   reliability (037), cross-cadaver (038), relational (040/047), and now representation reshaping (046/049)
   all converge there; only data scale (041: +8.9/+10.1) and input resolution (045: +2.6) ever moved it.
 - **Reproduce:** `scripts/learned_reshape.py`.
+
+### 050 — M-rep1 (LoRA): backbone last-block reshape — overfits; a textbook sealed-test validation
+- **When:** 2026-06-28.
+- **Why:** 049 trained a head on the *frozen* pooled vector (can only re-project). LoRA is the distinct,
+  more-expressive half the handout named — low-rank adapters on the last DINO block change the patch
+  tokens *before* pooling, so the pooled embedding itself can carry new information. Test if backbone
+  adaptation (not a head) beats frozen.
+- **What & How:** manual LoRA (rank 8) on the last block {qkv, proj, fc1, fc2} + a linear class head,
+  class cross-entropy. Cost control: cache the input to the last block once (frozen partial forward),
+  LoRA trains only the last block on cached tokens (batch 16, 12 epochs, ~1 min/epoch once memory was
+  freed — the first attempt thrashed at batch 64 + a 1.3 GB RAM cache, pushing the 36 GB box to 39 GB).
+  **Leak design:** LoRA trains on **dev only** → the **sealed test is clean** (test never seen); dev-CV
+  (LoRA trained on all dev) is the *optimistic* upper bound (gallery+query both in dev).
+- **Result:** **dev-CV (optimistic): LoRA-only 45.5 (Δ+11.95, 10/10), LoRA+L256 45.2 (Δ+11.71, 10/10)** —
+  looks like a huge win. **Sealed test (clean): frozen 36.1 → LoRA-only 24.5, LoRA+L256 30.5** — LoRA
+  generalizes *worse* than frozen. The **17.6 pp gap** between optimistic (+12) and clean (−5.6) **is the
+  overfitting**, made visible.
+- **Conclusion:** 🔴 LoRA does not beat frozen — it memorizes the dev classes (4.4 samples/class) and the
+  reshaping doesn't transfer, exactly §2's "added capacity overfits." **M-rep1 is fully negative (head
+  049 + LoRA 050); the representation axis is closed except the one resolution win (045).** Equally
+  important, this is a **textbook validation of the sealed-test protocol (§1.7)**: the optimistic dev-CV
+  would have falsely declared a +12 pp breakthrough; only the sealed test exposed the −5.6 pp reality.
+  Across the whole program, only data scale (041: +8.9/+10.1) and input resolution (045: +2.6) ever moved
+  the leak-safe ceiling. The remaining validated lever is **data**.
+- **Reproduce:** `scripts/lora_reshape.py`.

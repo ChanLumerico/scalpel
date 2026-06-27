@@ -1,0 +1,45 @@
+{
+  "title": "M-rep1(LoRA): 마지막 블록 백본 reshape",
+  "date": "2026-06-28",
+  "headline": "LoRA last-block: dev-CV LoRA+L256 45.2 (Δ vs frozen +11.71, 낙관) | 봉인 frozen 36.1 vs LoRA+L256 30.5 🔴무가산 → M-rep1 전체 음성, 데이터가 레버",
+  "rank": 8,
+  "epochs": 12,
+  "adopt": false,
+  "devcv": {
+    "frozen global+L256 (045)": {
+      "top1": [
+        33.5,
+        2.9
+      ],
+      "delta_vs_frozen": [
+        0.0,
+        0
+      ]
+    },
+    "LoRA-global only": {
+      "top1": [
+        45.5,
+        2.4
+      ],
+      "delta_vs_frozen": [
+        11.95,
+        10
+      ]
+    },
+    "LoRA-global+L256": {
+      "top1": [
+        45.2,
+        3.9
+      ],
+      "delta_vs_frozen": [
+        11.71,
+        10
+      ]
+    }
+  },
+  "sealed": {
+    "frozen": 36.1,
+    "lora_only": 24.5,
+    "lora_L256": 30.5
+  }
+}

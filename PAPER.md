@@ -176,6 +176,7 @@ relational expert (R-GCN), and PoE fusion, none adopted as of this report (§6.4
 | 047 | M-rep0c: relational-axis revival (040 re-run) | crack #0 dissolved (multi-pin 42%→66.6%) but axis still capped: realistic ceiling 040 +0.4 → +0.8pp (1.8 pins/seed) < σ 2.9; errors are mostly cross-region look-alikes, not co-present-partner swaps; direction-dependence 38% (crack #2) persists. 🔴 STOP — needs bundle-colabeled pages, not generic multi-pin density |
 | 048 | M-rep0 refinement (resolution saturated) | global+L256 (045) is the single-local sweet spot; α-weight best α=0.7 dev +0.25 (6/10, noise), L128 −4.3, L256-CLS −4.9, fraction −0.5, +L128+L256 −3.0 — tighter/CLS/fraction/extra-scale all regress. Resolution lever captured its gain in one shot (045) and is now closed → learned repr (M-rep1) or data |
 | 049 | M-rep1: learned reshape (SupCon head) | honest negative — every objective (tissue/class/hier) and space (head, frozen⊕head) loses to frozen global+L256: best class:frozen+head dev 31.2 (Δ−2.35, 0/10), sealed 36.1→34.2; tissue-only collapses (−27). Confirms 046 at the learning level — frozen exemplar already captures the separable signal; a contrastive head overfits/destroys region structure. Representation axis exhausted except resolution (045) |
+| 050 | M-rep1 (LoRA): backbone last-block reshape | overfits — dev-CV (LoRA on all dev, optimistic) +11.95/+11.71 (10/10) looks like a breakthrough, but the **clean sealed test** is frozen 36.1 → LoRA 30.5/24.5 (LoRA generalizes *worse*); the 17.6pp optimistic-vs-clean gap **is** the overfitting (§2). M-rep1 fully negative (head 049 + LoRA 050); a textbook validation of the sealed-test protocol §1.7 |
 
 ---
 
@@ -394,7 +395,7 @@ ultimate goal (real deployment):
 - Every experiment is logged under `experiments/NNN-*/` with a report, figures, and `metrics.json`.
   Figures containing cadaver imagery are saved as `*.private.png` and git-ignored.
 
-*Document version: `main`. Through exp 049. Four axes exhausted on the fixed 953 (model
+*Document version: `main`. Through exp 050. Four axes exhausted on the fixed 953 (model
 008–034, reliability 037, cross-cadaver 038, relational 040) — all converge on data-bound ceiling.
 **Acted on it (Phase 13):** harvested +462 BlueLink labeled multi-pin slides → clean leak-safe
 merged dataset (711 photos / 2230 triples / **502 core = 2.3×**). exp 041 precise re-eval delivered
@@ -427,7 +428,13 @@ exp 049 then closed the last representation lever: a learned SupCon reshape (tis
 head-only or frozen⊕head) never beats the frozen global+L256 (best dev −2.35, 0/10; sealed 36.1→34.2),
 confirming at the learning level that the frozen exemplar already captures the separable signal — a
 contrastive head overfits and destroys the region structure rather than adding within-region tissue id.
-**Net of Phase 14: the representation axis is exhausted except the single resolution win (045, global+L256,
-sealed 36.1).** Across the whole program only two things ever moved the leak-safe ceiling — data scale
-(041: +8.9/+10.1) and input resolution (045: +2.6); readout, reliability, cross-cadaver, relational, and
-representation-reshaping all converge on the data-bound ceiling (§2). The validated forward lever is data.*
+exp 050 ran the other half of M-rep1 — a LoRA reshape of the last backbone block — and produced the
+program's cleanest overfitting demonstration: the optimistic dev-CV (LoRA trained on all dev) shows
++11.95/+11.71 pp (10/10), but the *clean sealed test* is frozen 36.1 → LoRA 30.5/24.5 — LoRA generalizes
+**worse**, the 17.6 pp gap being the overfitting itself. **Net of Phase 14: the representation axis is
+exhausted except the single resolution win (045, global+L256, sealed 36.1); M-rep1 is fully negative
+(049 head + 050 LoRA).** Across the whole program only two things ever moved the leak-safe ceiling — data
+scale (041: +8.9/+10.1) and input resolution (045: +2.6); readout, reliability, cross-cadaver, relational,
+and representation-reshaping all converge on the data-bound ceiling (§2). 050 also stands as a textbook
+validation of the sealed-test protocol (§1.7) — without it the +12 pp dev-CV would have read as a
+breakthrough. The validated forward lever is data.*
