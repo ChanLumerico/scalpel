@@ -1114,3 +1114,18 @@ runs in parallel, awaiting the pilot.
   Consistent with 046/049 (the cue is present but not linearly extractable beyond what the exemplar
   already uses). Embedding-geometry post-processing is not a lever.
 - **Reproduce:** `scripts/embed_postproc.py`.
+
+### 053 — multi-layer DINO fusion (blocks 3/6/9/11 pooled at q) — strongly negative
+- **When:** 2026-06-28 (autonomous).
+- **Why:** shallower DINO blocks carry finer texture (vessel wall, fascicle) the last block abstracts
+  away; pooling several layers at q might inject the fine cue for artery/vein & same-region look-alikes.
+- **What & How:** DINOv2 `get_intermediate_layers` for blocks {3,6,9,11}, σ40-pool at q, concat variants;
+  dev 10-seed paired vs global+L256.
+- **Result:** **monotonically worse** the more shallow layers added — L11-only 28.9, L9+L11 26.2,
+  L6+L9+L11 24.3, L3+L6+L9+L11 21.7 (−11.8); multilayer+L256 27.7; base+L6 28.3 (−5.25). Nothing beats
+  global+L256.
+- **Conclusion:** shallow-layer texture is **noise, not signal** for this point-conditioned task — the
+  discriminative information lives in the last-layer semantic representation; vessel-wall texture is not
+  recoverable from shallow DINO features in a way that helps retrieval. Refutes the "finer texture helps"
+  hypothesis; reinforces that the limit is intrinsic/data, not feature-engineering.
+- **Reproduce:** `scripts/multilayer_fusion.py`.
