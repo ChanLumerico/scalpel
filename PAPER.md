@@ -167,6 +167,9 @@ relational expert (R-GCN), and PoE fusion, none adopted as of this report (§6.4
 | 037 | KDE posterior + conformal + OOD | ECE↓ (0.18 vs 0.37) but AURC flat & conformal sets ~110/172 useless; reliability heuristics already near-optimal |
 | 038 | cross-cadaver gap decomposition | gap ~0 (cross 46.5 ≈ page 46.6); same-cadaver match 0.3% — M-opt0 "6.5pp gap" was a small-gallery artifact; DX1 confirmed (coverage drops, accuracy invariant) |
 | 040 | relational-reasoning feasibility (M-rel0) | stop-but-hold: 58% pages single-pin; perfect-oracle ceiling +0.4pp ≈ 0.6 pins/seed (≪ σ3.6); 5 resolvable pairs, 3/5 direction-dependent — data-limited (crack #0/#2), revivable by data expansion |
+| (data) | BlueLink Images expansion + clean merge | +462 multi-label slides → merged_final 711 photos / 2230 triples / 502 core (2.3× core); 49% of QuizLink photos are the same image as a BlueLink slide; strict photo-dedup + pin-union, leak-safe |
+| 041 | leak-corrected re-evaluation | ⚠️ established ~46–49 was LEAK-INFLATED (49% twin photos); honest leak-free top1 21.5 (BlueLink confirms ~27); ⭐ +BlueLink gallery → QuizLink Δtop1 +8.9 (10/10) Δcov +10.1 (10/10); letterbox −2.2 (0/10) |
+| 042 | EDA: DINO-space class geometry | tissue-type separation ≈0 (DINO doesn't encode artery/vein/nerve); region separation strong; artery↔vein paired centroid cos 0.878 (DX3 quantified) — DINO organizes by region, not tissue |
 
 ---
 
@@ -385,10 +388,14 @@ ultimate goal (real deployment):
 - Every experiment is logged under `experiments/NNN-*/` with a report, figures, and `metrics.json`.
   Figures containing cadaver imagery are saved as `*.private.png` and git-ignored.
 
-*Document version: `data-pivot`. Through exp 040 — three axes now exhausted on the fixed 953:
-**model** (008–034: pooling, SAM, visual prompting), **reliability** (037: KDE/conformal/OOD add no
-operating-point gain), and **cross-cadaver** (038: accuracy invariant, only coverage drops). The
-**relational** axis (040) is held-not-killed — its perfect-oracle ceiling (+0.4 pp ≈ 0.6 pins/seed) is
-buried in noise because 58% of pages are single-pin (crack #0), but data expansion would revive it.
-Every axis converges on the same conclusion: the ceiling is data-bound. Next: data expansion (multi-pin /
-bundle-co-labelled pages), with the human-ceiling study to bound intrinsic label ambiguity first.*
+*Document version: `data-pivot`. Through exp 042. Four axes exhausted on the fixed 953 (model
+008–034, reliability 037, cross-cadaver 038, relational 040) — all converge on data-bound ceiling.
+**Acted on it (Phase 13):** harvested +462 BlueLink labeled multi-pin slides → clean leak-safe
+merged dataset (711 photos / 2230 triples / **502 core = 2.3×**). exp 041 precise re-eval delivered
+two results: (a) ⚠️ **the established ~46–49 was leak-inflated** — 49% of QuizLink photos are the
+same image as a BlueLink slide, and the old page-split separated those twins; honest leak-free top1
+is **~21–27** (a §1 honesty correction, exp 038-style); (b) ⭐ **the data expansion works** —
++BlueLink gallery raises QuizLink top1 +8.9 pp and coverage +10.1 pp (both 10/10, paired, leak-safe),
+confirming coverage as the lever (exp 038). exp 042 EDA: DINO-space organizes by **region** (sep 0.10),
+not **tissue type** (sep ≈0); artery↔vein paired centroids cos 0.88 (DX3 quantified). Next: scale data
+further + revisit the held relational axis (040) now that multi-pin pages exist.*

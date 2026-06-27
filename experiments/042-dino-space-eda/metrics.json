@@ -1,0 +1,35 @@
+{
+  "title": "EDA: DINO-space 클래스 중심점 기하",
+  "date": "2026-06-28",
+  "headline": "502 core 중심점 2D | 조직형 분리 -0.005(≈0) vs 부위 분리 0.098(강) | artery↔vein cos 0.878(DX3) → DINO는 부위로 조직화",
+  "n_core": 502,
+  "tissue_within": [
+    0.514,
+    0.169
+  ],
+  "tissue_across": [
+    0.519,
+    0.158
+  ],
+  "tissue_sep": -0.005,
+  "region_within": [
+    0.684,
+    0.142
+  ],
+  "region_across": [
+    0.586,
+    0.122
+  ],
+  "region_sep": 0.098,
+  "av_pair_cos": 0.878,
+  "n_av_pairs": 13,
+  "intra_spread": 0.905,
+  "tissue_spread": {
+    "other": 0.893,
+    "nerve": 0.912,
+    "bone": 0.882,
+    "muscle": 0.918,
+    "artery": 0.915,
+    "vein": 0.903
+  }
+}

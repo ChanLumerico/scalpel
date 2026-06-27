@@ -39,3 +39,5 @@
 | [037-conformal-kde](037-conformal-kde/report.md) | KDE posterior + Conformal + OOD | 2026-06-27 | ECE kde 0.181 vs base 0.367 (10/10) | AURC 0.344 vs 0.304 (1/10) | conf size kde 114.4 base 108.555 | xcadaver conf cover 0.877 (viol 2.3pp) |
 | [038-cadaver-invariant](038-cadaver-invariant/report.md) | Cross-cadaver 갭 분해 → cadaver-invariant | 2026-06-27 | 갭 0.1pp | 색조recovery -0.2pp (A3 stop) | A1 best λ0.3 cross +0.4(2/5) net -0.4 → 🔴  |
 | [040-rel-feasibility](040-rel-feasibility/report.md) | M-rel0 관계추론 feasibility (선결 게이트) | 2026-06-27 | top1 46.6±3.6 | 해결쌍 5(loose 13, 방향의존 3) | ⭐현실천장 +0.4pp(0.6 pins/seed, σ3.6에 묻힘) → STOP(crack#0=데이터한계, 폐기아닌 보류) |
+| [041-merged-eval](041-merged-eval/report.md) | 정밀 재평가 (clean merged) | 2026-06-27 | merged 502-way top1 31.6±4.1 cov 72.6 ee 22.9 | QL 195-way top1 21.5 cov 71.5 | +BlueL gallery Δtop1 8.9(10/10) Δcov 10.1(10/10) |
+| [042-dino-space-eda](042-dino-space-eda/report.md) | EDA: DINO-space 클래스 중심점 기하 | 2026-06-28 | 502 core 중심점 2D | 조직형 분리 -0.005(≈0) vs 부위 분리 0.098(강) | artery↔vein cos 0.878(DX3) → DINO는 부위로 조직화 |

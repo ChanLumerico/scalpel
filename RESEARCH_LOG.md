@@ -827,3 +827,60 @@ runs in parallel, awaiting the pilot.
   (`anat_graph.json`) and inference (`graph_inference.py`) builds in the handout are deferred,
   not invalidated.
 - **Reproduce:** `scripts/confusion_pairs.py` (handout exp-040 §2.1 + §4 M-rel0).
+
+## Phase 13 — Data expansion (BlueLink Images) + leak-corrected re-evaluation
+
+### Data pipeline — BlueLink labeled-slide harvest → clean merged dataset
+- **When:** 2026-06-27.
+- **Why:** Every axis (model 027–034, reliability 037, cross-cadaver 038, relational 040)
+  converged on the same conclusion — the ceiling is DATA. The proven lever (CLAUDE.md §2,§6)
+  is more (I,q,y). BlueLink's "Labeled BlueLink Images" curriculum (teaching slides with
+  baked labels) is a large, MULTI-LABEL-per-photo source (dissolves exp 040 crack #0).
+- **What & How:** (1) Crawl — user's `data/bluelink_html/crawler.py`; fixed 3 bugs:
+  filename-only dedup lost 36% (same SlideN across themes are *different* images → dedup by
+  original_url), saved-HTML CDN tokens are session-expired (403) → added `--live` (re-fetch
+  via canonical URL for fresh tokens), batch-then-download expired tokens mid-run → per-page
+  concurrent download. 462/462 slides, 3000×2250, 0 fail. (2) Extract (`bluelink_extract.py`)
+  — blue leader-line trace (HSV H119–124) to its tissue tip = q (PCA-direction march, robust
+  to crossing lines), OCR box (psm6 both polarities) = label, bottom-left title = region;
+  inpaint all annotations + logo + pin-aware crop (never cut a pin) = leak-free I. 1644
+  triples / 100% q-rate / 3.8 labels/slide. (3) Merge with QuizLink 953 (`clean_merge.py`):
+  OCR fixes (lac→iliac, brachil→brachii), state-strip (cut/reflected), depluralize, abbrev
+  (brs→branches), double-label (X artery vein→X artery). (4) Dedup
+  (`dedup_union.py`): discovered **49% of QuizLink photos are the same image as a BlueLink
+  slide** (QuizLink quizzes are built FROM BlueLink photos); strict photo-identity (exact
+  hash ∪ corr≥0.99) merge + pin union (scale-transform, validated) → one specimen per photo
+  (leak-safe). (5) QuizLink images were never cleaned → logo/title/©/margins remained;
+  `clean_quizlink.py` removes them + pin-aware crop + q-offset, value-preserving (off-tissue
+  FLAGGED not dropped — all 79 flags were valid dark structures like coccyx/foramina; only 1
+  junk "tee mae" dropped).
+- **Where:** final `data/merged_final` — **711 photos / 2230 triples / 502 core(≥2) / 710
+  specimens**, 0 missing / 0 q-oob / 0 w-h-mismatch / 0 dup; 531 multi-pin images (max 22).
+  vs original QuizLink 953/215 → **2.3× core**. (Intermediate dirs deleted by user on purpose.)
+- **Reproduce:** `data/bluelink_html/crawler.py --live`, `scripts/{bluelink_extract,clean_merge,
+  dedup_union,clean_quizlink}.py`.
+
+### 041 — Precise re-evaluation (leak-safe) — a major baseline correction
+- **When:** 2026-06-27.
+- **Why:** Measure the data-expansion payoff under the iron rules, and whether BlueLink helps
+  the deployment target (QuizLink-like 땡시).
+- **What & How:** frozen dinov2_vitb14@518 → GaussianPool σ40 → exemplar class-max cosine,
+  10-seed, **photo-twin BLOCK split** (exact∪corr≥0.90) so the 49% QuizLink↔BlueLink photo
+  overlap can't leak across train/test. core(≥2) basis for comparability.
+- **Result (a correction):** ⚠️ **the established ~46–49 baseline was LEAK-INFLATED.** Honest
+  leak-free QuizLink top1 = **21.5±4.7** (block-split); image-split (leaky) 29.7; un-deduped
+  original page-split gave the old 46.6. Cause: **49% of QuizLink photos have a near-twin**;
+  the original page-split separated twins → leak. Independently-extracted **BlueLink also
+  gives ~27 leak-free** — confirming the honest level is ~21–27, not 46–49. ⭐ **BlueLink
+  expansion HELPS QuizLink: gallery QL+BlueLink vs QL-only → Δtop1 +8.9pp (10/10), Δcoverage
+  +10.1pp (10/10)**, paired, leak-safe — the deployment-target win. Merged 502-way leak-free:
+  top1 31.6 / cov 72.6 / end-to-end 22.9 (vs QuizLink-only end-to-end 15.4 = 1.5×). q
+  integrity verified on 32 visual spot-checks (all on-structure; crop+dedup preserved pins).
+  Two negatives: **letterbox (aspect-preserving) resize HURTS −2.2pp (0/10)** vs squish
+  (squish fills the frame → more effective resolution; distortion is consistent gallery↔query
+  so harmless); **cropping cost ~2.5pp** (magnification/scale-inconsistency) — minor.
+- **Conclusion:** Coverage is the data-expansion lever (exp 038 confirmed): +10pp coverage and
+  +8.9pp top1 on the deployment target from BlueLink. The model's *real* leak-free performance
+  is ~21–31 (not the leak-inflated 46–49) — a §1-style honesty correction enabled by dedup +
+  twin-grouped split. Data expansion is validated as THE lever; the pipeline (squish) is optimal.
+- **Reproduce:** `scripts/eval_merged.py`.
