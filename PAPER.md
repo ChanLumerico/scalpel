@@ -172,6 +172,8 @@ relational expert (R-GCN), and PoE fusion, none adopted as of this report (§6.4
 | 042 | EDA: DINO-space class geometry | tissue-type separation ≈0 (DINO doesn't encode artery/vein/nerve); region separation strong; artery↔vein paired centroid cos 0.878 (DX3 quantified) — DINO organizes by region, not tissue |
 | 043 | model-methodology sweep (sealed-test §1.7) | exemplar 1-NN best (dev-CV 28.9; sealed-test top1 33.5, CI 27.5–39.4); mean/kNN/multiproto/LSE/KDE/SupCon all ≤ exemplar (SupCon old +2.6 was leak-driven); 44% errors same-tissue, vein hardest — model axis re-confirmed exhausted on clean data |
 | 045 | **multiscale high-res local (M-rep0)** + tissue/colour gates | ⭐ **first leak-safe ceiling crack**: high-res local crop ⊕ global → dev-CV 28.9→**33.5 (Δ+4.65, 10/10)**, sealed-test 33.5→**36.1** (CI 30.1–42.0) — bottleneck includes *input resolution*. Tissue-oracle Δ+6.4pp (gate headroom). artery-vs-vein AUC: colour 0.77 / DINO 0.76 — cue *is* in input & DINO encodes it linearly; the 042 "DINO can't tell" was a nearest-exemplar readout artifact, not a missing axis |
+| 046 | M-rep2: tissue-aware soft-gate readout | honest negative — soft-gate λ=0.05 Δ−0.17 (3/10), conf-gate +0.35 (6/10), hard −7.0 (error propagation). Stage-1 tissue acc 65.5% too low to realize the +6.4 oracle; exemplar already uses DINO's implicit tissue axis → explicit weaker gate is redundant+noisy. The artery/vein lever is NOT a post-hoc gate (→ learned repr or more resolution/data) |
+| 047 | M-rep0c: relational-axis revival (040 re-run) | crack #0 dissolved (multi-pin 42%→66.6%) but axis still capped: realistic ceiling 040 +0.4 → +0.8pp (1.8 pins/seed) < σ 2.9; errors are mostly cross-region look-alikes, not co-present-partner swaps; direction-dependence 38% (crack #2) persists. 🔴 STOP — needs bundle-colabeled pages, not generic multi-pin density |
 
 ---
 
@@ -390,7 +392,7 @@ ultimate goal (real deployment):
 - Every experiment is logged under `experiments/NNN-*/` with a report, figures, and `metrics.json`.
   Figures containing cadaver imagery are saved as `*.private.png` and git-ignored.
 
-*Document version: `main`. Through exp 045. Four axes exhausted on the fixed 953 (model
+*Document version: `main`. Through exp 047. Four axes exhausted on the fixed 953 (model
 008–034, reliability 037, cross-cadaver 038, relational 040) — all converge on data-bound ceiling.
 **Acted on it (Phase 13):** harvested +462 BlueLink labeled multi-pin slides → clean leak-safe
 merged dataset (711 photos / 2230 triples / **502 core = 2.3×**). exp 041 precise re-eval delivered
@@ -409,5 +411,13 @@ the bottleneck includes *input resolution* (518-squish + σ40 destroyed the fine
 gates: tissue-oracle Δ+6.4 pp (a tissue-aware readout has headroom), and artery-vs-vein is separable
 at AUC 0.77 by colour and 0.76 by DINO itself — the cue *is* in the input and DINO encodes it linearly;
 the 042 "DINO can't tell artery from vein" was a nearest-exemplar readout artifact, not a missing axis.
-Next: stack a tissue-aware (soft-gate) readout on global+L256; revive the relational axis (040) on the
-531 multi-pin images.*
+**exp 046–047 closed the two follow-on gates as honest negatives:** a tissue-aware soft-gate readout
+(M-rep2) does NOT realize the +6.4 oracle — a real 65.5%-accurate tissue head injects more error than
+signal, and the exemplar already uses DINO's implicit tissue axis, so an explicit weaker gate is
+redundant (hard gate −7.0 = error propagation); the artery/vein lever is not a post-hoc gate. Reviving
+the relational axis (M-rep0c) on the now-66.6%-multi-pin data dissolved 040's crack #0 but the realistic
+relational ceiling only doubled to +0.8pp (1.8 pins/seed, still < σ): the errors are cross-region
+look-alikes, not co-present-partner swaps, and direction-dependence (crack #2, 38%) persists. **Net:
+of the three representation gates, only resolution (M-rep0) delivered.** Forward: more resolution/fusion
+work or a *learned* representation (M-rep1 tissue-contrastive/LoRA, untested) on top of global+L256;
+relational needs bundle-colabeled pages, not generic multi-pin density.*

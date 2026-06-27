@@ -1,0 +1,83 @@
+{
+  "title": "관계축 부활 (040 재실행, merged+L256)",
+  "date": "2026-06-28",
+  "headline": "multi-pin 42%→66.6% (crack#0 해소) | 현실천장 040 +0.4 → 047 +0.8pp (1.8/seed, σ2.9) | 해결쌍 11 방향의존 38.1% → STOP",
+  "engine_top1": [
+    33.5,
+    2.9
+  ],
+  "err_rate_pct": 66.6,
+  "n_eval": 2290,
+  "n_wrong": 1525,
+  "multi_pin_pct": 66.6,
+  "single_pin_pct": 33.4,
+  "n_resolvable_pairs": 11,
+  "n_loose_pairs": 15,
+  "resolvable_pairs": [
+    [
+      "occipital lobe",
+      "parietal lobe",
+      12
+    ],
+    [
+      "condylar process",
+      "coracoid process",
+      7
+    ],
+    [
+      "rectus abdominis muscle",
+      "rectus sheath",
+      6
+    ],
+    [
+      "medial rectus muscle",
+      "superior rectus muscle",
+      5
+    ],
+    [
+      "celiac trunk",
+      "posterior vagal trunk",
+      5
+    ],
+    [
+      "suprascapular artery",
+      "suprascapular nerve",
+      4
+    ],
+    [
+      "extensor digitorum longus muscle",
+      "extensor hallucis longus muscle",
+      4
+    ],
+    [
+      "common carotid artery",
+      "external carotid artery",
+      4
+    ],
+    [
+      "l renal artery",
+      "l renal vein",
+      3
+    ],
+    [
+      "internal iliac artery",
+      "internal iliac artery anterior division",
+      3
+    ],
+    [
+      "s2 ventral ramus",
+      "s3 ventral ramus",
+      3
+    ]
+  ],
+  "n_dirdep_pairs": 4,
+  "invariant_frac_pct": 63.6,
+  "ceiling_loose_pp": 21.9,
+  "ceiling_tight_pp": 18.5,
+  "ceiling_navel_pp": 4.1,
+  "ceiling_partner_pp": 1.7,
+  "ceiling_real_pp": 0.8,
+  "real_per_seed": 1.8,
+  "dirdep_share_pct": 38.1,
+  "gate": "STOP"
+}

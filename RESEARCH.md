@@ -962,3 +962,50 @@ runs in parallel, awaiting the pilot.
   The artery/vein problem was mis-framed as "DINO can't see it" — DINO sees it (0.76), the *readout*
   throws it away. Next: stack the tissue-aware readout on top of global+L256.
 - **Reproduce:** `scripts/multiscale_local.py`.
+
+### 046 — M-rep2: tissue-aware soft-gate readout (realizing the +6.4 oracle) — honest negative
+- **When:** 2026-06-28.
+- **Why:** 045 showed the tissue cue IS in DINO (artery/vein AUC 0.76) and a tissue-oracle has +6.4pp
+  headroom. Realize it with a REAL (imperfect) tissue classifier, SOFT-gated (a hard gate propagates
+  Stage-1 error). Tissue-level avoids the class-level SupCon trap (367 samples/tissue, not 4.4/class).
+- **What & How:** `final(c) = s_exemplar(c) + λ·log P(tissue(c)|q)` on global+L256; P from a 6-way
+  LogReg head (artery/vein/nerve/muscle/bone/other) trained **per-fold on the train gallery only**
+  (leak-safe); λ tuned on dev 10-seed CV. Variants: plain soft, confidence-modulated (λ·maxP), hard
+  top-1, hard top-2. Additivity tracked: global → +L256 → +tissue.
+- **Result:** **no adoption.** dev-CV: global+L256 33.5 → soft-gate (λ=0.05) **33.4 (Δ−0.17, 3/10)**;
+  confidence-gate 33.9 (Δ+0.35, **6/10** — right direction, fails the ≥7/10 bar); hard top-1 **26.5
+  (−7.0)**, top-2 30.9 (−2.6) = error propagation, exactly what soft was meant to avoid. **Stage-1
+  tissue acc 65.5%.** λ-curve monotonically decreasing from λ=0. Sealed test: global 33.5 → +L256
+  36.1 → +soft 35.7 (no gain).
+- **Conclusion:** the +6.4 oracle assumed *perfect* tissue; a 65.5% classifier injects more error than
+  signal. Deeper reason: the exemplar on DINO **already exploits the implicit tissue axis** (AUC 0.76),
+  so an explicit, *less* accurate gate is redundant and only adds noise — and when it's confidently
+  wrong it down-weights the true class. **The artery/vein lever is NOT a post-hoc tissue gate.** soft≫
+  hard confirms the design (avoid hard gates); the signal just isn't there at this classifier quality.
+  Forward: a *learned* representation that reshapes same-tissue together (M-rep1, tissue contrastive/
+  LoRA — untested), or more resolution/data; not an explicit readout gate.
+- **Reproduce:** `scripts/multiscale_readout.py`.
+
+### 047 — M-rep0c: relational-axis revival (040 re-run on multi-pin data) — crack #0 solved, axis still capped
+- **When:** 2026-06-28.
+- **Why:** 040 closed the relational axis 🔴 but the cause was crack #0 (58% of pages single-pin → no
+  co-present relational neighbour), explicitly *held* for data expansion. merged_final has multi-pin
+  66.6% — crack #0 should be dissolved. Re-run the *identical* 040 oracle to test if the realistic
+  relational ceiling is now measurable.
+- **What & How:** same training-free oracle (predicates imported verbatim from `confusion_pairs.py`):
+  of the engine's errors, the share where a co-present same-image pin is a graph-partner of the true
+  label AND the model swapped to it AND appearance kept true ≤ rank-3 (a tie-breaker can only flip it
+  then). New data + new best engine (global+L256) + image co-presence + leak-safe block split. Same
+  pre-registered gate as 040.
+- **Result:** **crack #0 dissolved** (multi-pin 42%→**66.6%**, single-pin 58%→33%). TIGHT ceiling rose
+  040 +7.0 → 047 **+18.5pp** (resolvable neighbours now usually present). But the **realistic ceiling**
+  (pred=co-present partner & true≤rank3) is only 040 +0.4 → **+0.8pp (1.8 pins/seed)**, still under
+  σ=2.9pp. pred-is-partner just 1.7pp; direction-dependent share 38.1% (crack #2 persists). Found the
+  real NAVEL pairs (suprascapular a.↔n. ×4, renal a.↔v. ×3) but they're rare. 🔴 **STOP (still).**
+- **Conclusion:** dissolving crack #0 doubled the realistic ceiling but it remains buried — because the
+  model's errors are mostly **not** co-present-partner swaps with true near the top; they're cross-region
+  look-alikes a positional rule can't touch, and crack #2 (direction-dependence, not invariant under 2D
+  projection) erodes 38% of what's left. The relational axis is **not the lever even with multi-pin
+  data**; it would need bundle-colabeled pages targeted on purpose (femoral/renal/suprascapular triangles),
+  not generic multi-pin density. Honest negative; hold (not discard).
+- **Reproduce:** `scripts/multiscale_relational.py`.

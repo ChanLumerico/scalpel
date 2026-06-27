@@ -1,0 +1,86 @@
+{
+  "title": "조직-인식 soft-gate readout (global+L256 위)",
+  "date": "2026-06-28",
+  "headline": "M-rep2 soft-gate λ=0.05: +L256 33.5 → +tissue 33.4 (dev Δ-0.17, 3/10) | 봉인 global 33.5→L256 36.1→soft 35.7 (CI 29.7-41.6) 🔴미가산 | tissueacc 65.5%",
+  "best_lambda": 0.05,
+  "best_conf_lambda": 0.05,
+  "adopt": false,
+  "devcv": {
+    "global": [
+      28.9,
+      3.0
+    ],
+    "global_L256": [
+      33.5,
+      2.9
+    ],
+    "soft_gate": [
+      33.4,
+      2.7
+    ],
+    "conf_gate": [
+      33.9,
+      2.5
+    ],
+    "hard_top1": [
+      26.5,
+      2.6
+    ],
+    "hard_top2": [
+      30.9,
+      3.0
+    ]
+  },
+  "delta_L256_over_global": [
+    4.65,
+    10
+  ],
+  "delta_soft_over_L256": [
+    -0.17,
+    3
+  ],
+  "delta_conf_over_L256": [
+    0.35,
+    6
+  ],
+  "delta_hard1": [
+    -7.01,
+    0
+  ],
+  "delta_hard2": [
+    -2.64,
+    0
+  ],
+  "tissue_acc": [
+    65.5,
+    3.1
+  ],
+  "lambda_curve": {
+    "0.0": 33.52,
+    "0.05": 33.35,
+    "0.1": 31.15,
+    "0.2": 29.57,
+    "0.35": 28.5,
+    "0.5": 27.75,
+    "0.8": 27.36,
+    "1.2": 26.93,
+    "2.0": 26.75
+  },
+  "sealed": {
+    "global": 33.5,
+    "global_L256": 36.1,
+    "soft_gate": 35.7,
+    "ci": [
+      29.7,
+      41.6
+    ]
+  },
+  "per_tissue_delta": {
+    "artery": 2.5,
+    "other": 0.2,
+    "muscle": -0.5,
+    "nerve": -1.5,
+    "bone": -5.3,
+    "vein": -11.1
+  }
+}
