@@ -170,6 +170,7 @@ relational expert (R-GCN), and PoE fusion, none adopted as of this report (§6.4
 | (data) | BlueLink Images expansion + clean merge | +462 multi-label slides → merged_final 711 photos / 2230 triples / 502 core (2.3× core); 49% of QuizLink photos are the same image as a BlueLink slide; strict photo-dedup + pin-union, leak-safe |
 | 041 | leak-corrected re-evaluation | ⚠️ established ~46–49 was LEAK-INFLATED (49% twin photos); honest leak-free top1 21.5 (BlueLink confirms ~27); ⭐ +BlueLink gallery → QuizLink Δtop1 +8.9 (10/10) Δcov +10.1 (10/10); letterbox −2.2 (0/10) |
 | 042 | EDA: DINO-space class geometry | tissue-type separation ≈0 (DINO doesn't encode artery/vein/nerve); region separation strong; artery↔vein paired centroid cos 0.878 (DX3 quantified) — DINO organizes by region, not tissue |
+| 043 | model-methodology sweep (sealed-test §1.7) | exemplar 1-NN best (dev-CV 28.9; sealed-test top1 33.5, CI 27.5–39.4); mean/kNN/multiproto/LSE/KDE/SupCon all ≤ exemplar (SupCon old +2.6 was leak-driven); 44% errors same-tissue, vein hardest — model axis re-confirmed exhausted on clean data |
 
 ---
 
@@ -388,7 +389,7 @@ ultimate goal (real deployment):
 - Every experiment is logged under `experiments/NNN-*/` with a report, figures, and `metrics.json`.
   Figures containing cadaver imagery are saved as `*.private.png` and git-ignored.
 
-*Document version: `data-pivot`. Through exp 042. Four axes exhausted on the fixed 953 (model
+*Document version: `data-pivot`. Through exp 043. Four axes exhausted on the fixed 953 (model
 008–034, reliability 037, cross-cadaver 038, relational 040) — all converge on data-bound ceiling.
 **Acted on it (Phase 13):** harvested +462 BlueLink labeled multi-pin slides → clean leak-safe
 merged dataset (711 photos / 2230 triples / **502 core = 2.3×**). exp 041 precise re-eval delivered
@@ -397,5 +398,9 @@ same image as a BlueLink slide, and the old page-split separated those twins; ho
 is **~21–27** (a §1 honesty correction, exp 038-style); (b) ⭐ **the data expansion works** —
 +BlueLink gallery raises QuizLink top1 +8.9 pp and coverage +10.1 pp (both 10/10, paired, leak-safe),
 confirming coverage as the lever (exp 038). exp 042 EDA: DINO-space organizes by **region** (sep 0.10),
-not **tissue type** (sep ≈0); artery↔vein paired centroids cos 0.88 (DX3 quantified). Next: scale data
-further + revisit the held relational axis (040) now that multi-pin pages exist.*
+not **tissue type** (sep ≈0); artery↔vein paired centroids cos 0.88 (DX3 quantified). exp 043 model
+sweep under a sealed-test nested 3-way protocol (§1.7, `split_devtest.py`): exemplar 1-NN still best
+(sealed-test top1 33.5, CI 27.5–39.4); every aggregation/learned lever ≤ it — model axis re-confirmed
+exhausted on clean leak-safe data. Next: scale data further (validated +8.9/+10.1 lever) or a finer
+representation (high-res local crop around q); revisit the held relational axis (040) now that
+multi-pin pages exist.*
