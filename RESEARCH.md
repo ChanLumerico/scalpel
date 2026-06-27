@@ -1099,3 +1099,18 @@ runs in parallel, awaiting the pilot.
   small, CI overlaps 36.1, so report as modest not decisive). AQE's failure confirms the errors are not
   fixed by neighbourhood averaging (consistent with 047 — partners aren't co-retrieved).
 - **Reproduce:** `scripts/rerank_retrieval.py`.
+
+### 052 — embedding post-processing (all-but-the-top / whitening / standardisation / context removal) — negative
+- **When:** 2026-06-28 (autonomous).
+- **Why:** 042 showed region variance dominates the space; if a few principal directions carry it,
+  removing/equalising them (all-but-the-top, PCA-whitening, z-score) should expose within-region identity.
+- **What & How:** transforms fit on the gallery (train fold) only, applied to query (leak-safe). dev
+  10-seed CV paired vs raw global+L256 (33.5).
+- **Result:** **no adoption.** mean-center +0.29 (3/10), all-but-top d=1/3 +0.15–0.19 (5/10), d=5 −0.57,
+  whiten k=128/256 −0.7/−0.5, z-score +0.09; **image-context removal −15.23** (subtracting the photo's
+  mean embedding deletes the signal — within a photo the pinned structure *is* the region content).
+- **Conclusion:** linearly removing the dominant (region) variance does **not** surface tissue identity —
+  region and fine identity are entangled in the *same* subspace, not separable by discarding top PCs.
+  Consistent with 046/049 (the cue is present but not linearly extractable beyond what the exemplar
+  already uses). Embedding-geometry post-processing is not a lever.
+- **Reproduce:** `scripts/embed_postproc.py`.

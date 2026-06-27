@@ -1,0 +1,109 @@
+{
+  "title": "임베딩 후처리 (all-but-top·whiten·std)",
+  "date": "2026-06-28",
+  "headline": "best=mean-center dev Δ+0.29(3/10) — 무효",
+  "adopt": false,
+  "best": "mean-center",
+  "devcv": {
+    "baseline": {
+      "top1": [
+        33.5,
+        2.9
+      ],
+      "delta": [
+        0.0,
+        0
+      ]
+    },
+    "mean-center": {
+      "top1": [
+        33.8,
+        3.1
+      ],
+      "delta": [
+        0.29,
+        3
+      ]
+    },
+    "all-but-top d=1": {
+      "top1": [
+        33.7,
+        3.4
+      ],
+      "delta": [
+        0.19,
+        5
+      ]
+    },
+    "all-but-top d=3": {
+      "top1": [
+        33.7,
+        3.6
+      ],
+      "delta": [
+        0.15,
+        5
+      ]
+    },
+    "all-but-top d=5": {
+      "top1": [
+        33.0,
+        3.8
+      ],
+      "delta": [
+        -0.57,
+        4
+      ]
+    },
+    "all-but-top d=10": {
+      "top1": [
+        33.7,
+        3.3
+      ],
+      "delta": [
+        0.15,
+        4
+      ]
+    },
+    "whiten k=128": {
+      "top1": [
+        32.8,
+        2.9
+      ],
+      "delta": [
+        -0.7,
+        3
+      ]
+    },
+    "whiten k=256": {
+      "top1": [
+        33.0,
+        3.0
+      ],
+      "delta": [
+        -0.5,
+        4
+      ]
+    },
+    "std z-score": {
+      "top1": [
+        33.6,
+        3.4
+      ],
+      "delta": [
+        0.09,
+        4
+      ]
+    },
+    "img-context-rm": {
+      "top1": [
+        18.3,
+        4.0
+      ],
+      "delta": [
+        -15.23,
+        0
+      ]
+    }
+  }
+}
