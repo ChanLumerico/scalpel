@@ -1,0 +1,493 @@
+{
+  "title": "점 풀링 애블레이션",
+  "date": "2026-06-26",
+  "headline": "best=sigma20 top1 34.1% (σ40=31.3%)",
+  "configs": {
+    "bilinear": {
+      "n_protos": 229,
+      "test": 193,
+      "covered": 179,
+      "coverage_pct": 92.7,
+      "oov": 14,
+      "sel_top1": 32.4,
+      "sel_top3": 40.2,
+      "sel_top5": 43.0,
+      "e2e_top1": 30.1,
+      "e2e_top5": 39.9,
+      "chance_top1": 0.44,
+      "strata": {
+        "1": {
+          "n": 87,
+          "top1": 34.5,
+          "top3": 43.7,
+          "top5": 47.1
+        },
+        "2": {
+          "n": 56,
+          "top1": 17.9,
+          "top3": 26.8,
+          "top5": 28.6
+        },
+        "3": {
+          "n": 16,
+          "top1": 43.8,
+          "top3": 50.0,
+          "top5": 56.2
+        },
+        "4+": {
+          "n": 20,
+          "top1": 55.0,
+          "top3": 55.0,
+          "top5": 55.0
+        }
+      },
+      "top_confusions": [
+        [
+          "stomach -> l gonadal vein",
+          2
+        ],
+        [
+          "r coronary artery -> inferior gluteal artery",
+          2
+        ],
+        [
+          "esophagus -> brachiocephalic trunk",
+          2
+        ],
+        [
+          "median nerve -> femoral nerve",
+          2
+        ],
+        [
+          "inferior alveolar nerve -> buccal nerve",
+          2
+        ],
+        [
+          "internal jugular vein -> carotid sheath",
+          1
+        ],
+        [
+          "soft palate -> coronary sinus",
+          1
+        ],
+        [
+          "superior trunk -> caudate lobe",
+          1
+        ],
+        [
+          "peed artery -> ureter",
+          1
+        ],
+        [
+          "external lliac artery -> femoral vein",
+          1
+        ]
+      ]
+    },
+    "sigma10": {
+      "n_protos": 229,
+      "test": 193,
+      "covered": 179,
+      "coverage_pct": 92.7,
+      "oov": 14,
+      "sel_top1": 33.0,
+      "sel_top3": 43.0,
+      "sel_top5": 45.3,
+      "e2e_top1": 30.6,
+      "e2e_top5": 42.0,
+      "chance_top1": 0.44,
+      "strata": {
+        "1": {
+          "n": 87,
+          "top1": 36.8,
+          "top3": 46.0,
+          "top5": 47.1
+        },
+        "2": {
+          "n": 56,
+          "top1": 16.1,
+          "top3": 30.4,
+          "top5": 33.9
+        },
+        "3": {
+          "n": 16,
+          "top1": 43.8,
+          "top3": 50.0,
+          "top5": 56.2
+        },
+        "4+": {
+          "n": 20,
+          "top1": 55.0,
+          "top3": 60.0,
+          "top5": 60.0
+        }
+      },
+      "top_confusions": [
+        [
+          "stomach -> l gonadal vein",
+          2
+        ],
+        [
+          "r coronary artery -> inferior gluteal artery",
+          2
+        ],
+        [
+          "median nerve -> femoral nerve",
+          2
+        ],
+        [
+          "omohyoid muscle -> stylohyoid muscle",
+          1
+        ],
+        [
+          "soft palate -> patella reflected",
+          1
+        ],
+        [
+          "superior trunk -> caudate lobe",
+          1
+        ],
+        [
+          "peed artery -> ureter",
+          1
+        ],
+        [
+          "external lliac artery -> femoral vein",
+          1
+        ],
+        [
+          "femoral artery -> external lliac artery",
+          1
+        ],
+        [
+          "femoral vein -> femoral nerve",
+          1
+        ]
+      ]
+    },
+    "sigma20": {
+      "n_protos": 229,
+      "test": 193,
+      "covered": 179,
+      "coverage_pct": 92.7,
+      "oov": 14,
+      "sel_top1": 34.1,
+      "sel_top3": 42.5,
+      "sel_top5": 45.3,
+      "e2e_top1": 31.6,
+      "e2e_top5": 42.0,
+      "chance_top1": 0.44,
+      "strata": {
+        "1": {
+          "n": 87,
+          "top1": 39.1,
+          "top3": 46.0,
+          "top5": 48.3
+        },
+        "2": {
+          "n": 56,
+          "top1": 17.9,
+          "top3": 30.4,
+          "top5": 32.1
+        },
+        "3": {
+          "n": 16,
+          "top1": 43.8,
+          "top3": 50.0,
+          "top5": 56.2
+        },
+        "4+": {
+          "n": 20,
+          "top1": 50.0,
+          "top3": 55.0,
+          "top5": 60.0
+        }
+      },
+      "top_confusions": [
+        [
+          "stomach -> l gonadal vein",
+          2
+        ],
+        [
+          "esophagus -> femoral nerve",
+          2
+        ],
+        [
+          "median nerve -> femoral nerve",
+          2
+        ],
+        [
+          "inferior alveolar nerve -> facial artery",
+          2
+        ],
+        [
+          "internal jugular vein -> carotid sheath",
+          1
+        ],
+        [
+          "omohyoid muscle -> stylohyoid muscle",
+          1
+        ],
+        [
+          "cerebellum -> cecum",
+          1
+        ],
+        [
+          "soft palate -> patella reflected",
+          1
+        ],
+        [
+          "peed artery -> femoral nerve",
+          1
+        ],
+        [
+          "external lliac artery -> femoral artery",
+          1
+        ]
+      ]
+    },
+    "sigma40": {
+      "n_protos": 229,
+      "test": 193,
+      "covered": 179,
+      "coverage_pct": 92.7,
+      "oov": 14,
+      "sel_top1": 31.3,
+      "sel_top3": 40.2,
+      "sel_top5": 44.7,
+      "e2e_top1": 29.0,
+      "e2e_top5": 41.5,
+      "chance_top1": 0.44,
+      "strata": {
+        "1": {
+          "n": 87,
+          "top1": 39.1,
+          "top3": 44.8,
+          "top5": 47.1
+        },
+        "2": {
+          "n": 56,
+          "top1": 16.1,
+          "top3": 28.6,
+          "top5": 33.9
+        },
+        "3": {
+          "n": 16,
+          "top1": 37.5,
+          "top3": 50.0,
+          "top5": 56.2
+        },
+        "4+": {
+          "n": 20,
+          "top1": 35.0,
+          "top3": 45.0,
+          "top5": 55.0
+        }
+      },
+      "top_confusions": [
+        [
+          "l renal artery -> l renal vein",
+          2
+        ],
+        [
+          "esophagus -> phrenic nerve",
+          2
+        ],
+        [
+          "vagus nerve cn x -> vestibulocochlear nerve cn viii",
+          2
+        ],
+        [
+          "inferior alveolar nerve -> facial artery",
+          2
+        ],
+        [
+          "internal jugular vein -> carotid sheath",
+          1
+        ],
+        [
+          "omohyoid muscle -> stylohyoid muscle",
+          1
+        ],
+        [
+          "cerebellum -> cecum",
+          1
+        ],
+        [
+          "soft palate -> vertebral arteries",
+          1
+        ],
+        [
+          "peed artery -> femoral nerve",
+          1
+        ],
+        [
+          "external lliac artery -> femoral artery",
+          1
+        ]
+      ]
+    },
+    "sigma60": {
+      "n_protos": 229,
+      "test": 193,
+      "covered": 179,
+      "coverage_pct": 92.7,
+      "oov": 14,
+      "sel_top1": 31.3,
+      "sel_top3": 41.3,
+      "sel_top5": 45.3,
+      "e2e_top1": 29.0,
+      "e2e_top5": 42.0,
+      "chance_top1": 0.44,
+      "strata": {
+        "1": {
+          "n": 87,
+          "top1": 41.4,
+          "top3": 48.3,
+          "top5": 48.3
+        },
+        "2": {
+          "n": 56,
+          "top1": 14.3,
+          "top3": 28.6,
+          "top5": 37.5
+        },
+        "3": {
+          "n": 16,
+          "top1": 37.5,
+          "top3": 50.0,
+          "top5": 56.2
+        },
+        "4+": {
+          "n": 20,
+          "top1": 30.0,
+          "top3": 40.0,
+          "top5": 45.0
+        }
+      },
+      "top_confusions": [
+        [
+          "l renal artery -> l renal vein",
+          2
+        ],
+        [
+          "esophagus -> phrenic nerve",
+          2
+        ],
+        [
+          "vagus nerve cn x -> vestibulocochlear nerve cn viii",
+          2
+        ],
+        [
+          "median nerve -> posterior cord",
+          2
+        ],
+        [
+          "inferior alveolar nerve -> facial artery",
+          2
+        ],
+        [
+          "internal jugular vein -> carotid sheath",
+          1
+        ],
+        [
+          "omohyoid muscle -> stylohyoid muscle",
+          1
+        ],
+        [
+          "cerebellum -> occipital lobe",
+          1
+        ],
+        [
+          "soft palate -> patella reflected",
+          1
+        ],
+        [
+          "peed artery -> femoral nerve",
+          1
+        ]
+      ]
+    },
+    "sigma80": {
+      "n_protos": 229,
+      "test": 193,
+      "covered": 179,
+      "coverage_pct": 92.7,
+      "oov": 14,
+      "sel_top1": 30.2,
+      "sel_top3": 43.6,
+      "sel_top5": 49.2,
+      "e2e_top1": 28.0,
+      "e2e_top5": 45.6,
+      "chance_top1": 0.44,
+      "strata": {
+        "1": {
+          "n": 87,
+          "top1": 41.4,
+          "top3": 48.3,
+          "top5": 52.9
+        },
+        "2": {
+          "n": 56,
+          "top1": 10.7,
+          "top3": 35.7,
+          "top5": 42.9
+        },
+        "3": {
+          "n": 16,
+          "top1": 37.5,
+          "top3": 50.0,
+          "top5": 62.5
+        },
+        "4+": {
+          "n": 20,
+          "top1": 30.0,
+          "top3": 40.0,
+          "top5": 40.0
+        }
+      },
+      "top_confusions": [
+        [
+          "esophagus -> phrenic nerve",
+          3
+        ],
+        [
+          "vagus nerve cn x -> vestibulocochlear nerve cn viii",
+          2
+        ],
+        [
+          "median nerve -> posterior cord",
+          2
+        ],
+        [
+          "inferior alveolar nerve -> buccal nerve",
+          2
+        ],
+        [
+          "internal jugular vein -> carotid sheath",
+          1
+        ],
+        [
+          "omohyoid muscle -> infrahyoid muscles",
+          1
+        ],
+        [
+          "cerebellum -> occipital lobe",
+          1
+        ],
+        [
+          "soft palate -> patella reflected",
+          1
+        ],
+        [
+          "peed artery -> femoral nerve",
+          1
+        ],
+        [
+          "external lliac artery -> femoral artery",
+          1
+        ]
+      ]
+    }
+  }
+}

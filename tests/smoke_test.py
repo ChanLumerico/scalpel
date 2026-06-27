@@ -34,14 +34,13 @@ import torch  # noqa: E402
 import torch.nn as nn  # noqa: E402
 from PIL import Image  # noqa: E402
 
-from scalpel.config import BackboneCfg, PipelineCfg, SynthCfg, field_names  # noqa: E402
+from scalpel.config import BackboneCfg, PipelineCfg, field_names  # noqa: E402
 from scalpel import (
     heads,
     llm_reasoner,
     loops,
     perception,
     scene_graph,
-    synth,
 )  # noqa: E402
 from scalpel.relational_gnn import RelationalGNN, to_tensors  # noqa: E402
 from scalpel.pipeline import ScalpelPipeline  # noqa: E402
@@ -110,7 +109,7 @@ def check_config():
     # cross-cutting quantities propagated into sub-configs (§4.1)
     assert cfg.segmenter.n_classes == 8
     assert cfg.gnn.n_classes == 8 and cfg.gnn.n_relations == cfg.graph.n_relations
-    assert cfg.head.n_classes == 8 and cfg.synth.image_size == 70
+    assert cfg.head.n_classes == 8
     assert cfg.backbone.image_size == 70
     assert "n_classes" in field_names(cfg)
     assert scalpel.default_device() in {"mps", "cuda", "cpu"}
@@ -285,49 +284,6 @@ def check_llm_reasoner():
     assert out["answer"] == "unknown" and out["confidence"] == 0.0
 
 
-def check_synth():
-    # label <-> rgb codec round-trips
-    ids = [0, 1, 7, 255, 256, 65535, 123456]
-    arr = np.array(
-        [
-            [
-                list((np.array(synth.id_to_rgb(i)) * 255).round().astype(np.uint8))
-                for i in ids
-            ]
-        ],
-        dtype=np.uint8,
-    )
-    back = synth.rgb_to_id(arr)[0]
-    assert list(back) == ids, f"codec mismatch: {list(back)} != {ids}"
-
-    cfg = SynthCfg(erosion_iters=2, min_pin_area=16)
-    dr = synth.DomainRandomizer(cfg, np.random.default_rng(0))
-    lo, hi = cfg.light_range
-    assert lo <= dr.sample_light() <= hi
-    assert synth.np.asarray(dr.perturb_color([0.8, 0.5, 0.5])).shape == (3,)
-    img = np.random.rand(40, 40, 3)
-    assert dr.corrupt(img).shape == (40, 40, 3)
-
-    # pins land strictly inside the eroded interior (§8.1)
-    idmap = np.zeros((40, 40), dtype=np.int64)
-    idmap[8:32, 8:32] = 5
-    from scipy import ndimage as ndi
-
-    eroded = ndi.binary_erosion(
-        idmap == 5, ndi.generate_binary_structure(2, 2), iterations=cfg.erosion_iters
-    )
-    triples = synth.sample_triples(
-        img, idmap, cfg, np.random.default_rng(1), n_per_image=10
-    )
-    assert len(triples) == 10
-    for _rgb, (x, y), lab in triples:
-        assert (
-            lab == 5 and idmap[y, x] == 5 and eroded[y, x]
-        ), "pin escaped the interior (§8.1)"
-
-    assert "open3d" not in sys.modules, "synth import must not pull open3d (§8.8)"
-
-
 def check_loops_and_pipeline():
     pipe = make_pipe()
     cfg = pipe.cfg
@@ -419,7 +375,6 @@ CHECKS = [
     check_relational_gnn,
     check_heads,
     check_llm_reasoner,
-    check_synth,
     check_loops_and_pipeline,
     check_lazy_imports_final,
 ]

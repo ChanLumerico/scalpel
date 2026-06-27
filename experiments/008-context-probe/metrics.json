@@ -1,0 +1,27 @@
+{
+  "title": "관계/맥락 프로브",
+  "date": "2026-06-26",
+  "headline": "best=ms_cls top1 41.0±2.9% (local 38.8±3.4, Δ2.2) → 노이즈 안 — 단순 맥락 concat은 무효",
+  "variants": {
+    "local": {
+      "top1": 38.8,
+      "top1_std": 3.4,
+      "top5": 55.8
+    },
+    "ms": {
+      "top1": 40.7,
+      "top1_std": 3.6,
+      "top5": 57.3
+    },
+    "cls": {
+      "top1": 39.7,
+      "top1_std": 2.9,
+      "top5": 64.0
+    },
+    "ms_cls": {
+      "top1": 41.0,
+      "top1_std": 2.9,
+      "top5": 61.9
+    }
+  }
+}

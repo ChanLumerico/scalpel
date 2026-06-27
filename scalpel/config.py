@@ -107,32 +107,6 @@ class HeadCfg:
     max_entropy_bits: float = 2.5  # abstain above this predictive entropy
 
 
-@dataclass
-class SynthCfg:
-    """Synthetic renderer + domain randomization (handout §2.3, §4.2)."""
-
-    image_size: int = 518
-    erosion_iters: int = 3  # pin sampled inside eroded mask (§8.1)
-    n_pins_per_image: int = 8
-    min_pin_area: int = 32  # skip regions too small to pin safely
-    # domain randomization (xi) ranges
-    light_range: tuple[float, float] = (0.4, 1.6)
-    color_jitter: float = 0.15  # per-channel multiplicative jitter
-    gauss_noise_std: float = 0.04
-    blur_sigma_max: float = 1.5
-    occlusion_prob: float = 0.25
-    occlusion_max_frac: float = 0.07  # max occluder area as frac of image
-    cadaveric_prob: float = 0.5  # P(shift render toward pale formalin-cadaver look)
-    camera_roll_deg: float = 20.0
-    mesh_dir: str | None = None  # populated by the user for M1+
-    unlit_id_pass: bool = True  # ID pass: unlit flat, MSAA off (§8.2)
-    window_visible: bool = True  # legacy Visualizer needs a real window on macOS
-    zoom_min: float = 0.30  # close framing so region+context fill the frame
-    zoom_max: float = 0.42
-    muscle_drop_max: float = 0.7  # max fraction of muscle layers dropped (dissection depth)
-    tissue_fill: bool = True  # fill background+gaps with fat/fascia (continuous tissue field)
-
-
 # --------------------------------------------------------------------------- #
 # Bundle                                                                       #
 # --------------------------------------------------------------------------- #
@@ -154,7 +128,6 @@ class PipelineCfg:
     graph: GraphCfg = field(default_factory=GraphCfg)
     gnn: GNNCfg = field(default_factory=GNNCfg)
     head: HeadCfg = field(default_factory=HeadCfg)
-    synth: SynthCfg = field(default_factory=SynthCfg)
 
     device: str = field(default_factory=default_device)
 
@@ -168,7 +141,6 @@ class PipelineCfg:
             n_relations=self.graph.n_relations,
         )
         self.head = replace(self.head, n_classes=self.n_classes)
-        self.synth = replace(self.synth, image_size=self.image_size)
 
     # convenience -----------------------------------------------------------
     @property

@@ -1,14 +1,23 @@
-# Core (always required)
+# Core recognition engine (always required) -- modality-agnostic, reused as-is
 torch>=2.2
 torchvision>=0.17
 numpy>=1.24
 scipy>=1.10
 pillow>=10.0
 
-# Synthetic rendering (milestone M1+; excluded from the smoke path, handout §8.8)
-# Open3D is used instead of PyTorch3D/pyrender because it installs cleanly on
-# Apple Silicon (handout §9).
-# open3d>=0.18
+# ---------------------------------------------------------------------------
+# Real-data pipeline (scalpel/data) -- v2 REPLACES the synthetic renderer.
+# (open3d / BodyParts3D / Z-Anatomy meshes are gone; data comes from real
+#  BlueLink QuizLink dissection PDFs.)
+# ---------------------------------------------------------------------------
+# crawl: QuizLink fetch -- the index renders Drive links via JS, so a headless
+# browser is REQUIRED (static fetch returns only navigation); PDFs are ~95MB on
+# Drive, so a token-handling downloader is required.
+playwright>=1.40        # then run once: playwright install chromium
+gdown>=5.0
 
-# Optional LLM reasoning backend (milestone M7; handout §2.8)
-# mlx-vlm
+# parse: QuizLink PDF -> (clean_I, q, y)
+pypdf>=4.0              # PDF structure: AcroForm button widgets, /OCProperties
+pymupdf>=1.24           # fitz: page images (Im0 jp2) + widget rects
+opencv-python>=4.8      # HSV blue-leader segmentation + label-box inpainting
+pytesseract>=0.3        # OCR of clean label boxes (needs system `tesseract`)

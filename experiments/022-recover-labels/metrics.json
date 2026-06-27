@@ -1,0 +1,8 @@
+{
+  "title": "OCR 드롭 라벨 복구 후보",
+  "date": "2026-06-27",
+  "headline": "dropped 346 tri; recoverable candidates 1 labels / 1 triples (>= 90 sim, needs manual verify)",
+  "dropped_triples": 346,
+  "candidates": 1,
+  "candidate_triples": 1
+}

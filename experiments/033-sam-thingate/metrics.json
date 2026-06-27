@@ -1,0 +1,49 @@
+{
+  "title": "thin-게이팅 SAM 풀링 (최종 판정)",
+  "date": "2026-06-27",
+  "headline": "thin Δtop1 -2.0(1/10) → 기각; SAM 전 형태 종결(DX4/032/033)",
+  "groups": {
+    "thin": {
+      "treat": [
+        44.5,
+        5.1
+      ],
+      "base": [
+        46.5,
+        6.6
+      ],
+      "dtop1": -2.0,
+      "wins": 1,
+      "n": 249
+    },
+    "bulk": {
+      "treat": [
+        47.3,
+        3.3
+      ],
+      "base": [
+        46.6,
+        3.2
+      ],
+      "dtop1": 0.7,
+      "wins": 6,
+      "n": 352
+    },
+    "all": {
+      "treat": [
+        46.2,
+        3.5
+      ],
+      "base": [
+        46.6,
+        3.6
+      ],
+      "dtop1": -0.4,
+      "wins": 3,
+      "n": 601
+    }
+  },
+  "thin_masked": 216,
+  "thin_fallback": 33,
+  "adopt": false
+}

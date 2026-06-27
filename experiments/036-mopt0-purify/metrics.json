@@ -1,0 +1,32 @@
+{
+  "title": "M-opt0 평가 정화",
+  "date": "2026-06-27",
+  "headline": "HP-selection 누수 1.5pp → 🟢 누수 거의 없음 — paired Δ·30개 숫자 신뢰 | cross-cadaver 갭 6.5pp (page-split ~44.1 vs unseen-PDF ~37.6)",
+  "selection": {
+    "dev": [
+      45.7,
+      2.6
+    ],
+    "holdout": [
+      37.7,
+      5.1
+    ],
+    "gap": 8.0
+  },
+  "canonical": {
+    "dev": [
+      44.1,
+      2.2
+    ],
+    "holdout": [
+      37.6,
+      5.4
+    ],
+    "gap": 6.5
+  },
+  "hp_selection_leak_pp": 1.5,
+  "cross_cadaver_gap_pp": 6.5,
+  "picks": {
+    "80-exemplar": 5
+  }
+}

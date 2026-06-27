@@ -17,10 +17,14 @@ env/
 *.pth
 *.ckpt
 checkpoints/
-data/
 meshes/
 renders/
 outputs/
+
+# Sensitive medical data (BlueLink cadaver imagery) — NEVER commit (HANDOUT v2 §6)
+/data/
+# experiment figures that embed cadaver imagery (donor dignity §6) — local only
+*.private.png
 
 # torch.hub cache may land here if redirected
 .cache/

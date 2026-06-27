@@ -1,0 +1,92 @@
+{
+  "n_protos": 229,
+  "test": 193,
+  "covered": 179,
+  "coverage_pct": 92.7,
+  "oov": 14,
+  "sel_top1": 31.3,
+  "sel_top3": 40.2,
+  "sel_top5": 44.7,
+  "e2e_top1": 29.0,
+  "e2e_top5": 41.5,
+  "chance_top1": 0.44,
+  "strata": {
+    "1": {
+      "n": 87,
+      "top1": 39.1,
+      "top3": 44.8,
+      "top5": 47.1
+    },
+    "2": {
+      "n": 56,
+      "top1": 16.1,
+      "top3": 28.6,
+      "top5": 33.9
+    },
+    "3": {
+      "n": 16,
+      "top1": 37.5,
+      "top3": 50.0,
+      "top5": 56.2
+    },
+    "4+": {
+      "n": 20,
+      "top1": 35.0,
+      "top3": 45.0,
+      "top5": 55.0
+    }
+  },
+  "top_confusions": [
+    [
+      "l renal artery -> l renal vein",
+      2
+    ],
+    [
+      "esophagus -> phrenic nerve",
+      2
+    ],
+    [
+      "vagus nerve cn x -> vestibulocochlear nerve cn viii",
+      2
+    ],
+    [
+      "inferior alveolar nerve -> facial artery",
+      2
+    ],
+    [
+      "internal jugular vein -> carotid sheath",
+      1
+    ],
+    [
+      "omohyoid muscle -> stylohyoid muscle",
+      1
+    ],
+    [
+      "cerebellum -> cecum",
+      1
+    ],
+    [
+      "soft palate -> vertebral arteries",
+      1
+    ],
+    [
+      "peed artery -> femoral nerve",
+      1
+    ],
+    [
+      "external lliac artery -> femoral artery",
+      1
+    ]
+  ],
+  "title": "베이스라인 (M4' 외형 MVP)",
+  "date": "2026-06-26",
+  "headline": "top1 31.3% / top5 44.7% @cov92.7% (229-way)",
+  "config": {
+    "backbone": "dinov2_vitb14",
+    "sigma_px": 40.0,
+    "image_size": 518,
+    "min_count": 2,
+    "test_frac": 0.3,
+    "seed": 0
+  }
+}

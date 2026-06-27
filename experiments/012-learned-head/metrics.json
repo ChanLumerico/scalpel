@@ -1,0 +1,21 @@
+{
+  "title": "학습형 판별 헤드 (첫 학습)",
+  "date": "2026-06-26",
+  "headline": "learned top1 49.2 vs frozen 46.6 | paired Δtop1 +2.6(9/10) Δtop5 +7.8(10/10) → 학습이 일관되게 도움 (paired)",
+  "frozen_top1": [
+    46.6,
+    3.6
+  ],
+  "learned_top1": [
+    49.2,
+    4.3
+  ],
+  "frozen_top5": [
+    58.0,
+    4.4
+  ],
+  "learned_top5": [
+    65.8,
+    3.9
+  ]
+}
