@@ -665,3 +665,41 @@ scaling curve (013) showed.** Model-side ideas are now exhausted across nine pha
   Next (per ROI): a human-ceiling study to separate data-limit from intrinsic label
   ambiguity before any expensive data expansion.
 - **Reproduce:** `scripts/visual_prompt.py`.
+
+---
+
+## Phase 11 — Optimization on fixed data (reliability / coverage; OPT_HANDOUT)
+
+With the model axis closed, the centre of gravity moves to reliability and coverage —
+pushing the risk–coverage curve out on the fixed 953 triples (all frozen-embedding
+post-processing). Recommended ROI order (OPT_HANDOUT.md): M-opt0 gate → 037 conformal+
+KDE → 038 shrinkage → 039 coverage curve → 040 ensemble (gated). 035 (human ceiling)
+runs in parallel, awaiting the pilot.
+
+### 036 — M-opt0: evaluation purification (the gate before any optimization)
+- **When:** 2026-06-27.
+- **Why:** Before trusting any "+pp", quantify HP-SELECTION leakage — σ40/exemplar/
+  calibration were chosen while looking at core's eval; is the reported ~50 a *validation*
+  number? (Split leakage is already closed by DX1's specimen-level split.)
+- **What & How:** PDF-level nested protocol, 5 folds. Each fold seals ~20% of PDFs as
+  holdout; SELECT (σ∈{10,20,40,60,80}, rule∈{exemplar,proto}) on dev via dev-internal
+  specimen splits; EVALUATE the dev-selected config AND the fixed canonical (σ40,exemplar)
+  on the sealed holdout. **Decompose** the dev−holdout gap into (i) HP-selection optimism
+  = gap_selected − gap_canonical, and (ii) cross-cadaver shift = canonical gap.
+- **Where:** 601 core / 31 PDFs.
+- **Result:** selection dev 45.7 → holdout 37.7 (gap 8.0); canonical(σ40,ex) dev 44.1 →
+  holdout 37.6 (gap 6.5). Selection always picked (σ80, exemplar) but its holdout (37.7)
+  ≈ canonical holdout (37.6). **Decomposition: HP-selection leakage = 1.5pp 🟢;
+  cross-cadaver gap = 6.5pp (significant).** Holdout is noisy (±5, only 6 PDFs/fold).
+- **Conclusion:** (1) **Gate PASSED** — HP-selection optimism ~1.5pp: choosing on eval
+  added ~0 real generalization (σ80 over σ40 is dev-noise that evaporates on holdout),
+  so the **paired Δ comparisons across the 35 experiments stand** and σ40/exemplar are
+  robust (consistent with 006/009). (2) **New finding** — the absolute ~50 is
+  cross-cadaver-OPTIMISTIC: the standing page-level split lets a query match a gallery
+  exemplar from a *different page of the same cadaver* (same stain/lighting/cut), which
+  exemplar exploits; on truly unseen PDFs top1 falls to ~37–40. This refines DX1 (which
+  saw the gap small for the weaker proto rule) — exemplar specifically benefits from
+  same-cadaver matches. Going forward report page-split (~44–50) AND cross-cadaver
+  (~37–40) together; keep page-split for history-comparable paired Δ, treat cross-cadaver
+  as the deployment-honest figure. 037+ keep dev/holdout discipline.
+- **Reproduce:** `scripts/mopt0.py`.

@@ -35,3 +35,4 @@
 | [032-sam-classaware](032-sam-classaware/report.md) | 클래스-인지 SAM 마스킹 | 2026-06-27 | best sam-small Δtop1 -5.2(1/10) → 마스킹 무효 — Gaussian이 최선 (DX4 재확인) | thin g47.0/ca39.4 bulk g46.3/ca39.9 |
 | [033-sam-thingate](033-sam-thingate/report.md) | thin-게이팅 SAM 풀링 (최종 판정) | 2026-06-27 | thin Δtop1 -2.0(1/10) → 기각; SAM 전 형태 종결(DX4/032/033) |
 | [034-visual-prompt](034-visual-prompt/report.md) | Visual prompting | 2026-06-27 | best red-dot8-gpool Δtop1 -0.1(4/10) → 기각 |
+| [036-mopt0-purify](036-mopt0-purify/report.md) | M-opt0 평가 정화 | 2026-06-27 | HP-selection 누수 1.5pp → 🟢 누수 거의 없음 — paired Δ·30개 숫자 신뢰 | cross-cadaver 갭 6.5pp (page-split ~44.1 vs unseen-PDF ~37.6) |
