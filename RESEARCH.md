@@ -1129,3 +1129,17 @@ runs in parallel, awaiting the pilot.
   recoverable from shallow DINO features in a way that helps retrieval. Refutes the "finer texture helps"
   hypothesis; reinforces that the limit is intrinsic/data, not feature-engineering.
 - **Reproduce:** `scripts/multilayer_fusion.py`.
+
+### 054 — k-reciprocal re-ranking (Zhong 2017) — negative; sophistication breaks on few-shot long-tail
+- **When:** 2026-06-28 (autonomous).
+- **Why:** extend 051's CSLS win with the SOTA training-free re-ID reranker (Jaccard overlap of
+  k-reciprocal neighbour sets + local query expansion).
+- **What & How:** standard re_ranking on cached global+L256, k1∈{10,20}, λ∈{0.3,0.5}; dev 10-seed paired
+  vs cosine and vs CSLS k=5.
+- **Result:** **k-reciprocal hurts** — k1=10 −6.21, k1=20 −5.74, λ=0.5 −3.69 (1/10); −4.31 vs CSLS.
+  CSLS k=5 remains the best reranker (+0.61, 7/10, sealed 38.3).
+- **Conclusion:** k-reciprocal assumes a dense neighbourhood with *many* same-identity gallery instances;
+  our extreme few-shot long-tail (1.5–4 exemplars/class) makes the reciprocal-neighbour/Jaccard estimates
+  unreliable, so the reranking corrupts the order. Only the simplest hubness correction (CSLS) survives;
+  neighbourhood-graph rerankers (AQE 051, k-reciprocal 054) break on sparsity. Re-ranking family exhausted.
+- **Reproduce:** `scripts/kreciprocal.py`.

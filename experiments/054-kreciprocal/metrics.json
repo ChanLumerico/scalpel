@@ -1,0 +1,63 @@
+{
+  "title": "k-reciprocal 재순위화 vs CSLS",
+  "date": "2026-06-28",
+  "headline": "best=CSLS k=5 dev Δ+0.61(7/10) | SEALED cos 36.1 → CSLS k=5 38.3 | k-recip vs CSLS Δ-4.31",
+  "adopt": true,
+  "best": "CSLS k=5",
+  "krecip_vs_csls": [
+    -4.31,
+    0
+  ],
+  "devcv": {
+    "cosine": {
+      "top1": [
+        33.5,
+        2.9
+      ],
+      "delta_vs_cos": [
+        0.0,
+        0
+      ]
+    },
+    "CSLS k=5": {
+      "top1": [
+        34.1,
+        3.1
+      ],
+      "delta_vs_cos": [
+        0.61,
+        7
+      ]
+    },
+    "k-recip k1=10": {
+      "top1": [
+        27.3,
+        2.5
+      ],
+      "delta_vs_cos": [
+        -6.21,
+        0
+      ]
+    },
+    "k-recip k1=20": {
+      "top1": [
+        27.8,
+        4.2
+      ],
+      "delta_vs_cos": [
+        -5.74,
+        0
+      ]
+    },
+    "k-recip k1=20 λ=0.5": {
+      "top1": [
+        29.8,
+        4.0
+      ],
+      "delta_vs_cos": [
+        -3.69,
+        1
+      ]
+    }
+  }
+}
