@@ -160,6 +160,7 @@ relational expert (R-GCN), and PoE fusion, none adopted as of this report (§6.4
 | 029 | local-orientation/texture | orient-only 11.2; fusion only hurts (−4 to −12) |
 | 030 | multi-prototype / soft agg. | exemplar-max best; smoothing monotonically hurts |
 | 031 | DINO ⊕ BiomedCLIP ensemble | marginal +1.0 but 5/10 — not complementary |
+| 032 | class-aware SAM masking (oracle) | negative: hard mask-avg dilutes; gauss 46.6 ≫ all (soft-edge variant WIP) |
 
 ---
 

@@ -571,3 +571,31 @@ same-region confusions carry no extra signal in the local image — not in a str
 backbone's features, not in medical-text knowledge, not in micro-texture, not in a
 cleverer metric. **The binding constraint is data coverage/instances, exactly as the
 scaling curve (013) showed.** Model-side ideas are now exhausted across nine phases.
+
+### 032 — Class-aware adaptive SAM masking (revisiting DX4)
+- **When:** 2026-06-27.
+- **Why:** DX4 killed SAM at a single setting; the user proposed making the mask SCALE
+  *class-aware* — thin tubular structures (artery/vein/nerve/duct) want a tight small
+  mask, bulk tissue (muscle/bone/gland) wants a large mask — then pool DINO tokens
+  over the chosen mask instead of an isotropic Gaussian.
+- **What & How:** SAM-ViT-B point-prompted at the pin with `multimask_output` gives 3
+  masks at 3 scales; pool DINO patch tokens (masked-mean, back off to the pin patch if
+  the mask covers <½ patch). Policies: gauss (baseline) / sam-best (highest-IoU mask)
+  / sam-small / sam-large / **class-aware (ORACLE thin→small, bulk→large)**. Cheap
+  probe = oracle routing (best possible); if the oracle can't beat gauss, no router is
+  worth building. 10-seed paired, plus a thin-vs-bulk accuracy breakdown.
+- **Where:** ≥2 core (thin 264 / bulk 337).
+- **Result:** gauss **46.6** ≫ sam-small 41.5 > class-aware 39.7 > sam-best 37.0 >
+  sam-large 34.3 (best non-gauss Δ−5.2, 1/10). Breakdown: thin gauss 47.0 vs
+  class-aware(small) **39.4**; bulk gauss 46.3 vs class-aware(large) **39.9** — the
+  idea loses on BOTH halves. Notably class-aware (39.7) is *worse* than always-small
+  (41.5) because the bulk→large half is the most harmful (large 34.3).
+- **Conclusion:** Negative, and the breakdown refutes the specific intuition: "big
+  mask for muscle" is the single most damaging choice, and even a tight mask on a thin
+  vessel underperforms the Gaussian. The granularity of routing is not the problem —
+  any *hard uniform mask-average* dilutes the pin-concentrated signal, and the
+  Gaussian's *soft pin-centred weighting* beats it at every scale. The oracle
+  upper-bound failing closes the class-aware-routing direction. (SAM masks on
+  dissected thin structures are themselves unreliable — visual ≠ anatomical boundary,
+  the DX4 finding — so the masks are bad AND the averaging is wrong.)
+- **Reproduce:** `scripts/sam_classaware.py`.
