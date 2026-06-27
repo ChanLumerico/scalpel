@@ -171,6 +171,7 @@ relational expert (R-GCN), and PoE fusion, none adopted as of this report (§6.4
 | 041 | leak-corrected re-evaluation | ⚠️ established ~46–49 was LEAK-INFLATED (49% twin photos); honest leak-free top1 21.5 (BlueLink confirms ~27); ⭐ +BlueLink gallery → QuizLink Δtop1 +8.9 (10/10) Δcov +10.1 (10/10); letterbox −2.2 (0/10) |
 | 042 | EDA: DINO-space class geometry | tissue-type separation ≈0 (DINO doesn't encode artery/vein/nerve); region separation strong; artery↔vein paired centroid cos 0.878 (DX3 quantified) — DINO organizes by region, not tissue |
 | 043 | model-methodology sweep (sealed-test §1.7) | exemplar 1-NN best (dev-CV 28.9; sealed-test top1 33.5, CI 27.5–39.4); mean/kNN/multiproto/LSE/KDE/SupCon all ≤ exemplar (SupCon old +2.6 was leak-driven); 44% errors same-tissue, vein hardest — model axis re-confirmed exhausted on clean data |
+| 045 | **multiscale high-res local (M-rep0)** + tissue/colour gates | ⭐ **first leak-safe ceiling crack**: high-res local crop ⊕ global → dev-CV 28.9→**33.5 (Δ+4.65, 10/10)**, sealed-test 33.5→**36.1** (CI 30.1–42.0) — bottleneck includes *input resolution*. Tissue-oracle Δ+6.4pp (gate headroom). artery-vs-vein AUC: colour 0.77 / DINO 0.76 — cue *is* in input & DINO encodes it linearly; the 042 "DINO can't tell" was a nearest-exemplar readout artifact, not a missing axis |
 
 ---
 
@@ -389,7 +390,7 @@ ultimate goal (real deployment):
 - Every experiment is logged under `experiments/NNN-*/` with a report, figures, and `metrics.json`.
   Figures containing cadaver imagery are saved as `*.private.png` and git-ignored.
 
-*Document version: `data-pivot`. Through exp 043. Four axes exhausted on the fixed 953 (model
+*Document version: `main`. Through exp 045. Four axes exhausted on the fixed 953 (model
 008–034, reliability 037, cross-cadaver 038, relational 040) — all converge on data-bound ceiling.
 **Acted on it (Phase 13):** harvested +462 BlueLink labeled multi-pin slides → clean leak-safe
 merged dataset (711 photos / 2230 triples / **502 core = 2.3×**). exp 041 precise re-eval delivered
@@ -401,6 +402,12 @@ confirming coverage as the lever (exp 038). exp 042 EDA: DINO-space organizes by
 not **tissue type** (sep ≈0); artery↔vein paired centroids cos 0.88 (DX3 quantified). exp 043 model
 sweep under a sealed-test nested 3-way protocol (§1.7, `split_devtest.py`): exemplar 1-NN still best
 (sealed-test top1 33.5, CI 27.5–39.4); every aggregation/learned lever ≤ it — model axis re-confirmed
-exhausted on clean leak-safe data. Next: scale data further (validated +8.9/+10.1 lever) or a finer
-representation (high-res local crop around q); revisit the held relational axis (040) now that
-multi-pin pages exist.*
+exhausted on clean leak-safe data. **exp 045 opened the representation axis (Phase 14):** a
+training-free **multiscale high-res local** embedding (crop around q ⊕ global) lifted dev-CV 28.9→33.5
+(Δ+4.65, 10/10) and **sealed-test 33.5→36.1** — the first leak-safe gain since the 041 correction, so
+the bottleneck includes *input resolution* (518-squish + σ40 destroyed the fine cue). Two more green
+gates: tissue-oracle Δ+6.4 pp (a tissue-aware readout has headroom), and artery-vs-vein is separable
+at AUC 0.77 by colour and 0.76 by DINO itself — the cue *is* in the input and DINO encodes it linearly;
+the 042 "DINO can't tell artery from vein" was a nearest-exemplar readout artifact, not a missing axis.
+Next: stack a tissue-aware (soft-gate) readout on global+L256; revive the relational axis (040) on the
+531 multi-pin images.*

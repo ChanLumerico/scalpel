@@ -925,3 +925,40 @@ runs in parallel, awaiting the pilot.
   fine identity (DX3), consistent with exp 042's geometry. Forward path = data (validated +8.9/+10.1
   lever) or a finer representation; not readout tricks.
 - **Reproduce:** `scripts/model_sweep.py`.
+
+## Phase 14 — Representation axis (the only un-closed model lever): resolution gate first
+
+### 045 — M-rep0 multiscale high-res local + M-rep0b tissue-oracle / colour probe — the first ceiling crack
+- **When:** 2026-06-28.
+- **Why:** 043 closed the readout axis and 042/044 showed *why* — tissue types overlap in frozen-DINO
+  space. Before reshaping the space (contrastive/LoRA, which is the failed-SupCon trap), the *most
+  upstream* question (handout §2): is the fine-identity cue even **in the input**? Our pipeline squishes
+  the whole image to 518 px + σ40-pools, so a small pinned structure's discriminating cue (vessel
+  wall / lumen / colour) may be destroyed at the *resolution* step — in which case any spatial
+  reshaping is moot. Hypothesis: the bottleneck is partly **input resolution**, not just space layout.
+- **What & How (training-free gates, run together):**
+  **M-rep0** — for each pin, crop a tight high-res box around q from the native-resolution image
+  (256 & 512 px, q-centred, out-of-image padded black), resize each to 518, DINO→σ40-pool at the crop
+  **centre** → `z_local`. Unit-norm each block, concat with the global embedding, exemplar 1-NN.
+  Variants: global / global+L256 / global+L512 / global+L256+L512 / local-only. **No training** — just
+  re-embed; paired Δ vs global, clean 502, dev 10-seed CV select + sealed test once (§1.7).
+  **M-rep0b(a)** tissue-oracle: restrict candidates to the true tissue → ceiling of a tissue gate.
+  **M-rep0b(b)** colour probe: low-level RGB/HSV/texture (no DINO) artery-vs-vein 5-fold AUC, plus
+  the same AUC on DINO-global features (is the cue *in the input* vs *captured by DINO*).
+- **Where:** `data/merged_final` clean 502 (dev 1214 / test 337, sealed), `_local{256,512}_cache.npy`.
+- **Result:** **M-rep0 ADOPTED.** dev-CV top1: global 28.9±3.0 → **global+L256 33.5±2.9, paired Δ +4.65,
+  10/10** (global+L512 +3.18, global+L256+L512 +3.45, all 10/10; **local-only −1.75, 2/10** → global
+  region-context still required, so multiscale = both). **Sealed TEST: global+L256 top1 36.1
+  (CI 30.1–42.0) vs global 33.5** — the first leak-safe gain since the 041 correction.
+  **M-rep0b(a):** tissue-oracle 35.3 vs 28.9 → **Δ +6.4 pp** (a tissue gate is worth up to +6.4 → M-rep2
+  has headroom). **M-rep0b(b):** artery-vs-vein AUC **colour/texture 0.771 | DINO-global 0.762** (n=430)
+  — both ≫ 0.5, so (i) the cue **is in the input** (not the DX3 information dead-end), and (ii) DINO
+  *does* encode artery/vein **linearly** (0.76), the failure in 042 was the *centroid-proximity /
+  nearest-exemplar readout* (cos 0.88, NN crosses regions), not absence of the axis.
+- **Conclusion:** the representation axis is **open** — bottleneck includes **input resolution**, and
+  high-res local zoom is a real, leak-safe lever (+4.65 dev / +2.6 sealed, 10/10). New best =
+  **global+L256**. Two more green gates: a **tissue-aware readout** (oracle +6.4 → M-rep2 soft-gate
+  hierarchical retrieval) and **colour is exploitable** (AUC 0.77 → M-rep3 / a learned tissue axis).
+  The artery/vein problem was mis-framed as "DINO can't see it" — DINO sees it (0.76), the *readout*
+  throws it away. Next: stack the tissue-aware readout on top of global+L256.
+- **Reproduce:** `scripts/multiscale_local.py`.

@@ -1,0 +1,66 @@
+{
+  "title": "표현 게이트: 멀티스케일 로컬 + 조직oracle·색",
+  "date": "2026-06-28",
+  "headline": "M-rep0 best=global+L256 dev Δ4.65(10/10) → 봉인test 36.1 (CI 30.1–42.0) 🟢해상도 | 조직oracle Δ+6.4 | av-AUC 색0.77/DINO0.76",
+  "mrep0": {
+    "global (043 base)": {
+      "dev_t1": [
+        28.9,
+        3.0
+      ],
+      "delta": 0.0,
+      "wins": 0
+    },
+    "global+L256": {
+      "dev_t1": [
+        33.5,
+        2.9
+      ],
+      "delta": 4.65,
+      "wins": 10
+    },
+    "global+L512": {
+      "dev_t1": [
+        32.1,
+        3.5
+      ],
+      "delta": 3.18,
+      "wins": 10
+    },
+    "global+L256+L512": {
+      "dev_t1": [
+        32.3,
+        3.3
+      ],
+      "delta": 3.45,
+      "wins": 10
+    },
+    "local256+512 only": {
+      "dev_t1": [
+        27.1,
+        3.5
+      ],
+      "delta": -1.75,
+      "wins": 2
+    }
+  },
+  "best_variant": "global+L256",
+  "sealed_test_top1": 36.1,
+  "sealed_ci": [
+    30.1,
+    42.0
+  ],
+  "global_test_top1": 33.5,
+  "adopt": true,
+  "tissue_oracle_delta_pp": 6.4,
+  "av_auc_color": 0.771,
+  "av_auc_dino": 0.762,
+  "per_tissue_delta": {
+    "muscle": 6.3,
+    "artery": 5.4,
+    "other": 4.6,
+    "nerve": 2.6,
+    "vein": 0.0,
+    "bone": 0.0
+  }
+}

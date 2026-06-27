@@ -40,15 +40,17 @@
 - **실시험 문제 사진은 학습/평가/갤러리 어디에도 사용 금지.**
 
 ## 4. 모델 / 방법 (현재 베스트와 교훈)
-- **현재 베스트:** frozen DINOv2(vitb14) + 핀 GaussianPool(σ40) + **exemplar 1-NN**.
-  ⚠️ 옛 "215-way top1 49.2"는 **누수 인플레**였음(exp 041 — 사진 49% 중복). **정직 수치(누수안전 merged
-  502-way, exp 043, 봉인 test §1.7):** dev-CV exemplar **28.9±3.0**, **봉인 test top1 33.5 (CI 27.5–39.4)**,
-  확신30% **~52%**. 데이터 확장이 검증된 레버
+- **현재 베스트:** frozen DINOv2(vitb14) + 핀 GaussianPool(σ40) + **exemplar 1-NN** + **멀티스케일 고해상
+  로컬(global+L256, exp 045)**. ⚠️ 옛 "215-way top1 49.2"는 **누수 인플레**였음(exp 041 — 사진 49% 중복).
+  **정직 수치(누수안전 merged 502-way, 봉인 test §1.7):** global-only dev-CV **28.9±3.0** / 봉인 test **33.5**
+  → **+L256: dev-CV 33.5±2.9 (Δ+4.65, 10/10) / 봉인 test 36.1 (CI 30.1–42.0)**. 데이터 확장도 검증된 레버
   (+BlueLink → QuizLink Δtop1 +8.9/Δcov +10.1, 둘 다 10/10).
-- 교훈: **최근접 exemplar ≫ 평균 프로토타입**(누수안전서도 31.6 vs 26.7로 재확인). **SupCon 헤드는 누수안전
-  데이터선 도움 안 됨**(옛 +2.6은 부분 누수기반). 백본 키워도 한계, 맥락 concat·SAM·visual prompting·관계추론
-  전부 음성. **DINO-space는 부위로 조직화되지 조직형(동맥/정맥/신경)은 못 가름**(exp 042, artery↔vein cos 0.88).
-  → 천장 = 부위내 미세정체성; 모델 trick 아닌 데이터 또는 더 미세한 표현이 레버.
+- 교훈: **최근접 exemplar ≫ 평균 프로토타입**(재확인). **SupCon 헤드·맥락 concat·SAM·visual prompting·관계추론
+  전부 음성**(집계/readout 축 소진, exp 043). **그러나 표현 축은 열림(exp 045):** ⭐ **병목에 입력 해상도가
+  있었다** — 518 squish + σ40이 핀 미세단서를 버림 → q 주변 고해상 줌인 concat이 누수안전 첫 균열(+2.6 봉인).
+  **artery↔vein은 못 가르는 게 아니라(색 AUC 0.77, DINO도 선형 0.76), exemplar 1-NN readout이 버리는 것**
+  (중심 cos 0.88, 최근접이 부위 넘나듦) — exp 042 해석 정정. **조직-oracle Δ+6.4pp** = 조직-인식 readout 여지.
+  → 다음 레버: 고해상 로컬 위 **조직-인식(soft-gate) readout** + 데이터 확장; 관계축은 531 다중핀으로 040 재시도.
 
 ## 5. 로깅 규율 (연구 일지 — 빠짐없이)
 - **모든 실험 → `experiments/NNN-*/`**: 한글 `report.md` + figure + `metrics.json`. `explog.py`로 생성.

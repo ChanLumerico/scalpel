@@ -42,3 +42,4 @@
 | [041-merged-eval](041-merged-eval/report.md) | 정밀 재평가 (clean merged) | 2026-06-27 | merged 502-way top1 31.6±4.1 cov 72.6 ee 22.9 | QL 195-way top1 21.5 cov 71.5 | +BlueL gallery Δtop1 8.9(10/10) Δcov 10.1(10/10) |
 | [042-dino-space-eda](042-dino-space-eda/report.md) | EDA: DINO-space 클래스 중심점 기하 | 2026-06-28 | 502 core 중심점 2D | 조직형 분리 -0.005(≈0) vs 부위 분리 0.098(강) | artery↔vein cos 0.878(DX3) → DINO는 부위로 조직화 |
 | [043-model-sweep](043-model-sweep/report.md) | 모델 방법론 스윕 (중첩 멀티시드 3-way) | 2026-06-28 | dev-선택 best=exemplar → 봉인 TEST top1 33.5 (CI 27.5–39.4) cov 79.8 | dev-CV 28.9 (낙관 -4.6pp) | SupCon test 31.6 | errors same-tissue 42% |
+| [045-multiscale-local](045-multiscale-local/report.md) | 표현 게이트: 멀티스케일 로컬 + 조직oracle·색 | 2026-06-28 | M-rep0 best=global+L256 dev Δ4.65(10/10) → 봉인test 36.1 (CI 30.1–42.0) 🟢해상도 | 조직oracle Δ+6.4 | av-AUC 색0.77/DINO0.76 |
