@@ -1143,3 +1143,14 @@ runs in parallel, awaiting the pilot.
   unreliable, so the reranking corrupts the order. Only the simplest hubness correction (CSLS) survives;
   neighbourhood-graph rerankers (AQE 051, k-reciprocal 054) break on sparsity. Re-ranking family exhausted.
 - **Reproduce:** `scripts/kreciprocal.py`.
+
+### 055 — test-time augmentation (TTA) of the local crop — negative
+- **When:** 2026-06-28 (autonomous).
+- **Why:** multi-view (flip/scale) embedding averaging is the classic variance-reduction trick; might
+  sharpen the L256 crop embedding.
+- **What & How:** L256 crop embedded over {center, h-flip, scale 0.8, 1.25}, averaged, fused with global;
+  dev 10-seed paired vs global+L256.
+- **Result:** **no gain** — TTA(noflip) −0.07 (5/10), TTA(all incl. flip) −0.47, local-only −0.87.
+- **Conclusion:** the single deterministic crop embedding is already low-variance — there is nothing for
+  averaging to reduce; h-flip slightly hurts (blurs laterality). TTA is not a lever here.
+- **Reproduce:** `scripts/tta_local.py`.
