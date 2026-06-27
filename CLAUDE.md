@@ -52,7 +52,7 @@
 
 ## 5. 로깅 규율 (연구 일지 — 빠짐없이)
 - **모든 실험 → `experiments/NNN-*/`**: 한글 `report.md` + figure + `metrics.json`. `explog.py`로 생성.
-- **`RESEARCH_LOG.md`(영어)가 정식 연구 일지** — 실험이 끝나면 **반드시 5W1H로 매우 상세히** 항목 추가:
+- **`RESEARCH.md`(영어)가 정식 연구 일지** — 실험이 끝나면 **반드시 5W1H로 매우 상세히** 항목 추가:
   **When / Why(동기·가설) / What & How(방법·설정) / Where(데이터·조건) / Result(수치) /
   Conclusion(의미·다음으로 이어진 것) / Reproduce(스크립트).** 한 줄 요약 금지.
 - **`PAPER.md`(영어)** 는 다듬은 논문 — §5 색인 + §6 주제별 결과 갱신.

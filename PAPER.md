@@ -129,7 +129,7 @@ relational expert (R-GCN), and PoE fusion, none adopted as of this report (§6.4
 ## 5. Experiment Index
 
 > Full per-experiment detail (5W1H: when / why / how / where / result / conclusion /
-> reproduce) is in **`RESEARCH_LOG.md`** (the running research journal). This table
+> reproduce) is in **`RESEARCH.md`** (the running research journal). This table
 > is the one-line index.
 
 | # | Experiment | Key result |
