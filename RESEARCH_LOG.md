@@ -884,3 +884,41 @@ runs in parallel, awaiting the pilot.
   is ~21–31 (not the leak-inflated 46–49) — a §1-style honesty correction enabled by dedup +
   twin-grouped split. Data expansion is validated as THE lever; the pipeline (squish) is optimal.
 - **Reproduce:** `scripts/eval_merged.py`.
+
+### 042 — EDA: geometry of the class space in DINO embedding space
+- **When:** 2026-06-28.
+- **Why/How:** embed every core pin, take per-class centroids, t-SNE the 502 centroids to 2D;
+  colour by tissue type and by region; quantify within- vs across-group centroid cosine, and
+  the artery↔vein same-region paired centroid distance. Added per-tissue & per-region Gaussian
+  KDE density heatmaps (mirrors the pipeline's p(z|y), exp037) over an instance t-SNE.
+- **Result:** **DINO-space is organised by REGION, not tissue type.** Tissue separation
+  within−across ≈ **−0.005 (zero)** — same-tissue classes are NOT closer than different-tissue;
+  region separation = **+0.10** (orbit/pelvis/cranial/oral form clean density clusters).
+  artery↔vein same-region paired centroid cos = **0.878** (n=13) — near-identical. Intra-class
+  cohesion 0.905.
+- **Conclusion:** geometric root of the "top5-good / top1-bad" signature — the model places a
+  pin in the right REGION (top5) but cannot resolve fine intra-region identity (top1), and
+  artery/vein/nerve are entangled (DX3). The lever is data or a fundamentally finer
+  representation, not the readout.
+- **Reproduce:** `scripts/eda_dino_space.py` (+ embedding cache `data/merged_final/_dino_cache.npy`).
+
+### 043 — Model-methodology sweep on the clean merged data (leak-safe) — model axis re-confirmed exhausted
+- **When:** 2026-06-28.
+- **Why:** the old "exemplar≫mean / learned-head modest" verdicts were on the 953/leak-inflated
+  data — re-check every aggregation/learned lever on 2.3× cleaner, leak-safe 502-way.
+- **What & How:** cached σ40 embeddings, 10-seed photo-block split. Methods: mean-proto,
+  exemplar(max), kNN-3/5, multi-proto(k-means), LSE, KDE, and a trained SupCon linear head
+  (768→256, 200 steps/seed) then exemplar. 7 diagnostic figures.
+- **Result:** **exemplar 1-NN still best, top1 31.6±4.1** — every alternative is worse or equal:
+  mean 26.7, multi-proto 30.2, kNN-3 28.3, kNN-5 22.2, LSE 24.0, KDE 24.8, **SupCon+exemplar
+  30.4 (−1.2, did NOT help)**. SupCon gave +2.6 on the old leaky data but nothing here → the old
+  gain was likely partly leak-driven. Diagnostics: **44% of errors are same-tissue** (intra-tissue
+  confusion); per-tissue top1 muscle 43 ≫ vein 22 (vein hardest, DX3); **shot paradox — 2-shot
+  38 > 6+ 27** (frequent classes are the common, confusable vessels/muscles, intrinsically harder,
+  not a data-per-class deficit); risk-coverage: abstaining to 30–40% coverage lifts selective top1
+  to ~52% (deployment operating point).
+- **Conclusion:** the model axis is **re-confirmed exhausted on clean leak-safe data** — no
+  aggregation or learned-head trick beats exemplar 1-NN. The ceiling is intra-region/intra-tissue
+  fine identity (DX3), consistent with exp 042's geometry. Forward path = data (validated +8.9/+10.1
+  lever) or a finer representation; not readout tricks.
+- **Reproduce:** `scripts/model_sweep.py`.
