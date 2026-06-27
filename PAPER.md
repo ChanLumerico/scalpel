@@ -165,6 +165,7 @@ relational expert (R-GCN), and PoE fusion, none adopted as of this report (§6.4
 | 034 | visual prompting (q at backbone input) | rejected: best Δ−0.1 (4/10); marker encodes location but CLS top1≈39≪46.6 — model axis closed |
 | 036 | M-opt0 eval purification | HP-selection leak ~1.5pp (paired Δ stand); cross-cadaver gap ~6.5pp (page-split same-cadaver-optimistic) |
 | 037 | KDE posterior + conformal + OOD | ECE↓ (0.18 vs 0.37) but AURC flat & conformal sets ~110/172 useless; reliability heuristics already near-optimal |
+| 038 | cross-cadaver gap decomposition | gap ~0 (cross 46.5 ≈ page 46.6); same-cadaver match 0.3% — M-opt0 "6.5pp gap" was a small-gallery artifact; DX1 confirmed (coverage drops, accuracy invariant) |
 
 ---
 
@@ -289,17 +290,21 @@ more specimens raise accuracy *and* coverage together.
   methods, so the chosen headlines carry ~1–2 pp of *optimism* (selection-on-test, not
   contamination; individual measurements remain valid). The decisive results (exemplar advantage,
   scaling) are robust, but a clean claim of the final number warrants a 3-way (train/val/test) split.
-- **Cross-cadaver, refined for exemplar (M-opt0, exp 036):** a PDF-level nested protocol (select on
-  dev PDFs, evaluate on sealed unseen PDFs) decomposes the dev→holdout gap into two causes. **(i)
-  HP-selection leakage ≈ 1.5 pp** — the dev-selected config (σ80) does not beat the canonical
-  (σ40,exemplar) on holdout (37.7 vs 37.6), so choosing on the eval added ~0 real generalization; the
-  paired Δ comparisons across all experiments stand, confirming the ~1–2 pp estimate above. **(ii)
-  Cross-cadaver gap ≈ 6.5 pp** — the canonical exemplar model drops from page-split dev ~44 to
-  unseen-PDF holdout ~37–40 (noisy, 6 PDFs/fold). Unlike the proto check above (which saw top1
-  invariant), the *exemplar* rule benefits from same-cadaver gallery matches (same stain/lighting/cut
-  on another page of the same PDF), which the page-level split permits. So the headline ~50 is
-  same-cadaver-optimistic; the deployment-honest cross-cadaver top1 is ~37–40. Report both: page-split
-  for history-comparable paired Δ, cross-cadaver as the generalization figure.
+- **HP-selection leakage, measured (M-opt0, exp 036):** a PDF-level nested protocol (select σ/rule on
+  dev PDFs, evaluate the choice on sealed unseen PDFs) shows the dev-selected config (σ80) does not
+  beat the canonical (σ40,exemplar) on holdout (37.7 vs 37.6) — choosing on the eval added ~0 real
+  generalization (**~1.5 pp** selection optimism). The paired Δ comparisons across all experiments
+  stand, confirming the ~1–2 pp estimate above; σ40/exemplar are robust.
+- **Cross-cadaver accuracy is invariant — coverage is the cost (exp 038, correcting 036):** M-opt0
+  *also* appeared to show a ~6.5 pp cross-cadaver accuracy gap, but exp 038 traced that to an artifact
+  — M-opt0 evaluated the holdout with a gallery drawn from *within* the 6 holdout PDFs (a tiny
+  gallery), so the low top1 was a gallery-size effect (§6.6 scaling), not cadaver shift. With the
+  correct setup (gallery = all dev PDFs, query = unseen PDF), cross-cadaver top1 is **46.5 ≈ page-split
+  46.6 — no gap**, and the nearest gallery exemplar is same-PDF only **0.3 %** of the time (no
+  same-cadaver leakage). A Reinhard colour-normalization and a cadaver-invariant feature centering both
+  recover nothing (there is no per-cadaver bias to remove). This confirms the original DX1 finding for
+  the exemplar rule too: **what a new cadaver costs is coverage (83 → 57 %), not accuracy.** The honest
+  generalization headline is ~46–50.
 
 ### 6.9 Backbone scaling
 We had only ever used the smallest backbone, vitb14. Swapping in larger frozen DINOv2 variants

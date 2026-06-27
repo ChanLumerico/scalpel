@@ -694,15 +694,17 @@ runs in parallel, awaiting the pilot.
 - **Conclusion:** (1) **Gate PASSED** — HP-selection optimism ~1.5pp: choosing on eval
   added ~0 real generalization (σ80 over σ40 is dev-noise that evaporates on holdout),
   so the **paired Δ comparisons across the 35 experiments stand** and σ40/exemplar are
-  robust (consistent with 006/009). (2) **New finding** — the absolute ~50 is
-  cross-cadaver-OPTIMISTIC: the standing page-level split lets a query match a gallery
-  exemplar from a *different page of the same cadaver* (same stain/lighting/cut), which
-  exemplar exploits; on truly unseen PDFs top1 falls to ~37–40. This refines DX1 (which
-  saw the gap small for the weaker proto rule) — exemplar specifically benefits from
-  same-cadaver matches. Going forward report page-split (~44–50) AND cross-cadaver
-  (~37–40) together; keep page-split for history-comparable paired Δ, treat cross-cadaver
-  as the deployment-honest figure. 037+ keep dev/holdout discipline.
-- **Reproduce:** `scripts/mopt0.py`.
+  robust (consistent with 006/009). (2) **[⚠️ RETRACTED by exp 038]** I initially read
+  the holdout drop (~37–40) as a cross-cadaver *accuracy* gap from same-cadaver leakage.
+  **That was an artifact of the protocol here:** the holdout was evaluated with a gallery
+  drawn from *within the 6 holdout PDFs* (a tiny gallery), so the low top1 reflects
+  GALLERY SIZE (exp 013 scaling), not cadaver shift. exp 038, with the proper setup
+  (gallery = all dev PDFs, query = unseen PDF), finds cross-cadaver top1 **46.5 ≈
+  page-split 46.6 — no gap** — and that the nearest gallery exemplar is same-PDF only
+  **0.3%** of the time (no same-cadaver leakage). DX1 was right: cross-cadaver *accuracy
+  is invariant*; what drops is *coverage* (83→57%, a cadaver's unique structures go OOV).
+  The honest headline is ~46–50, NOT ~37–40.
+- **Reproduce:** `scripts/mopt0.py`. (Cross-cadaver claim corrected by `scripts/cadaver_invariant.py` / exp 038.)
 
 ### 037 — KDE posterior + Conformal + OOD (reliability/coverage layer)
 - **When:** 2026-06-27.
@@ -736,3 +738,33 @@ runs in parallel, awaiting the pilot.
   cross-cadaver, so it is not same-cadaver-only. Reliability axis adds no operating-point
   gain; the open lever is COVERAGE (038/039), not confidence.
 - **Reproduce:** `scripts/conformal_kde.py`.
+
+### 038 — Cross-cadaver gap decomposition (A3) → cadaver-invariant normalization (A1)
+- **When:** 2026-06-27.
+- **Why:** The cross-cadaver gap M-opt0 reported (~6.5pp) looked like the biggest open
+  lever (bigger than reliability), so attack it — but its *cause* decides if it is
+  closeable: per-cadaver colour/lighting (fixable by normalization) vs anatomical
+  variation between people (a 953 limit). Decompose first (A3); normalize only if colour
+  dominates (A1). PRIMARY axis raised to cross-cadaver (the deployment-honest number; the
+  reason this lever was never seen — every prior experiment used page-split only).
+- **What & How:** A3-1 colour: re-embed Reinhard colour-normalized images (per-cadaver
+  colour removed toward a global LAB reference); measure gap recovery. A3-2: fraction of
+  page-split test pins whose nearest gallery exemplar is the SAME PDF, and accuracy same-
+  vs diff-cadaver. A1: z'=z−λ(μ_cadaver−μ_global), μ_cadaver = CLASS-UNIFORM exemplar
+  mean (★037 lesson: no frequency weighting), λ∈{0,.3,.5,.7,1}, gallery+query, primary =
+  cross-cadaver (gallery=dev PDFs, query=unseen PDF) 5-fold, page-split 10-seed reported.
+- **Where:** 601 core / 31 PDFs.
+- **Result (a correction):** **the gap is ~0.** Proper cross-cadaver (large dev gallery,
+  unseen-PDF query) top1 **46.5 ≈ page-split 46.6**; coverage drops to 57% (OOV). Nearest
+  gallery exemplar is same-PDF only **0.3%** of the time → no same-cadaver leakage. A3-1
+  colour recovery −0.2pp (gap is 0.1) → pre-registered STOP. A1 λ-sweep confirms nothing
+  to remove: best λ0.3 cross +0.4 (2/5 folds), page −0.8, net −0.4 → not adopted.
+- **Conclusion:** **This retracts the M-opt0 cross-cadaver claim.** The "6.5pp gap" was a
+  small-holdout-gallery artifact (gallery size, exp 013), not cadaver shift. Cross-cadaver
+  *accuracy is invariant* (DX1 confirmed); the only cross-cadaver cost is COVERAGE
+  (cadaver-unique structures become OOV). So cadaver-invariant normalization is moot, and
+  the headline ~46–50 is the honest generalization accuracy. The real open lever is
+  COVERAGE (039), exactly as DX1 and the handout's 🟢 coverage track said — not appearance
+  normalization. A clean example of the protocol deciding the conclusion (a fair cross-
+  cadaver eval needs a *full* gallery, not a holdout-internal one).
+- **Reproduce:** `scripts/cadaver_invariant.py`.

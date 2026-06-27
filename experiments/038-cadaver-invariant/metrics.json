@@ -1,0 +1,91 @@
+{
+  "title": "Cross-cadaver 갭 분해 → cadaver-invariant",
+  "date": "2026-06-27",
+  "headline": "갭 0.1pp | 색조recovery -0.2pp (A3 stop) | A1 best λ0.3 cross +0.4(2/5) net -0.4 → 🔴 ",
+  "gap_pp": 0.1,
+  "color_recovery_pp": -0.2,
+  "a3_pass": false,
+  "same_cadaver": {
+    "frac_same_pct": 0.3,
+    "acc_same": 53.6,
+    "acc_diff": 43.9
+  },
+  "A1": {
+    "0.0": {
+      "page": [
+        46.6,
+        3.6
+      ],
+      "cross": [
+        46.5,
+        6.2
+      ],
+      "cross_cov": [
+        57.2,
+        4.8
+      ]
+    },
+    "0.3": {
+      "page": [
+        45.8,
+        3.5
+      ],
+      "cross": [
+        46.9,
+        5.5
+      ],
+      "cross_cov": [
+        57.2,
+        4.8
+      ]
+    },
+    "0.5": {
+      "page": [
+        45.3,
+        3.6
+      ],
+      "cross": [
+        46.4,
+        5.2
+      ],
+      "cross_cov": [
+        57.2,
+        4.8
+      ]
+    },
+    "0.7": {
+      "page": [
+        45.1,
+        3.4
+      ],
+      "cross": [
+        45.4,
+        5.5
+      ],
+      "cross_cov": [
+        57.2,
+        4.8
+      ]
+    },
+    "1.0": {
+      "page": [
+        44.4,
+        3.8
+      ],
+      "cross": [
+        43.6,
+        6.7
+      ],
+      "cross_cov": [
+        57.2,
+        4.8
+      ]
+    }
+  },
+  "best_lambda": 0.3,
+  "cross_gain_pp": 0.4,
+  "page_loss_pp": 0.8,
+  "net_pp": -0.4,
+  "fold_wins": 2,
+  "adopt": false
+}

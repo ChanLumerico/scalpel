@@ -10,6 +10,10 @@
   exemplar 1-NN(cos), specimen-split, 10-seed.
 - 모델 축 종결(008/015/020/024/026/030/032/033 + 034 visual prompting). top1 천장 ≈46–50%.
 - 운영점: top1(cov)~50, top5~58–66, cov~83%, confident-30%~88%, ECE~0.2–0.3.
+- **[exp 038 정정]** M-opt0가 시사한 "cross-cadaver 갭 ~6.5pp / 배포-정직 ~37–40"은 *작은-갤러리
+  아티팩트*로 판명. 제대로 평가하면 cross-cadaver 정확도는 **불변(46.5≈46.6)**, unseen 카데바의
+  비용은 *coverage*(83→57%)뿐(DX1 확인). → §1.1의 cross-cadaver 전제·A1(cadaver-invariant) 무효;
+  진짜 레버는 **coverage**(§3.2 E/H, 039).
 - 세 축은 곡선의 트레이드오프 → 목표 = **risk–coverage 곡선을 바깥으로**.
 - 기대치 못박음: top1 짜내도 +2~5pp 상한. coverage·신뢰도는 깨끗한 레버.
 
