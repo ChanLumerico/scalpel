@@ -1,0 +1,81 @@
+{
+  "title": "학습형 표현 reshape (SupCon head)",
+  "date": "2026-06-28",
+  "headline": "M-rep1 best=class:frozen+head dev 31.2 (Δ vs frozen -2.35, 0/10) | 봉인 frozen 36.1→best 34.2 (CI 28.6-40.1) 🔴무가산",
+  "baseline_devcv": [
+    33.5,
+    2.9
+  ],
+  "best": "class:frozen+head",
+  "adopt": false,
+  "devcv": {
+    "tissue:head": {
+      "top1": [
+        6.6,
+        1.5
+      ],
+      "delta": [
+        -26.97,
+        0
+      ]
+    },
+    "tissue:frozen+head": {
+      "top1": [
+        26.3,
+        3.2
+      ],
+      "delta": [
+        -7.24,
+        0
+      ]
+    },
+    "class:head": {
+      "top1": [
+        28.5,
+        3.8
+      ],
+      "delta": [
+        -5.01,
+        0
+      ]
+    },
+    "class:frozen+head": {
+      "top1": [
+        31.2,
+        3.4
+      ],
+      "delta": [
+        -2.35,
+        0
+      ]
+    },
+    "hier:head": {
+      "top1": [
+        23.9,
+        3.3
+      ],
+      "delta": [
+        -9.65,
+        0
+      ]
+    },
+    "hier:frozen+head": {
+      "top1": [
+        29.6,
+        3.1
+      ],
+      "delta": [
+        -3.96,
+        1
+      ]
+    }
+  },
+  "sealed": {
+    "frozen": 36.1,
+    "best": 34.2,
+    "ci": [
+      28.6,
+      40.1
+    ]
+  }
+}

@@ -57,8 +57,12 @@
   (오류가 동석-파트너 swap이 아니라 부위넘는 lookalike, 방향의존 38% 잔존). **3게이트 중 해상도(M-rep0)만 유효.**
 - **해상도 레버는 045에서 포화(exp 048):** α-가중(best α0.7 +0.25 6/10 노이즈)·더타이트 L128(−4.3)·CLS(−4.9)·
   fraction(−0.5)·스케일추가(−3.0) 전부 global+L256 못 넘음 → 256px center-σ40 등가중 fusion이 단일-로컬 sweet
-  spot, 이득은 045서 한 방에 소진. → 남은 미시도 레버: **학습형 표현(M-rep1 tissue-contrastive/LoRA, global+L256
-  위)** 또는 데이터 확장(검증된 +8.9/+10.1); 관계축은 다발-동시라벨 페이지 타게팅(generic 다중핀 아님).
+  spot, 이득은 045서 한 방에 소진. **M-rep1 학습형 표현(SupCon head)도 음성(exp 049):** tissue/class/hier ×
+  head/frozen⊕head 전부 frozen global+L256 못 넘음(best −2.35, 0/10; 봉인 36.1→34.2) — 046이 학습 차원에서
+  재확인(frozen이 이미 분리가능 신호를 다 씀, contrastive head는 region 구조 파괴). **표현 축은 해상도(045) 외
+  소진.** 전 프로그램서 누수안전 천장을 움직인 건 둘뿐 — **데이터 스케일(041 +8.9/+10.1)·입력 해상도(045 +2.6)**.
+  나머지(readout 043 / 신뢰도 037 / cross-cadaver 038 / 관계 040·047 / 표현reshape 046·049)는 전부 데이터 천장으로
+  수렴(§2). → **남은 검증된 레버 = 데이터.**
 
 ## 5. 로깅 규율 (연구 일지 — 빠짐없이)
 - **모든 실험 → `experiments/NNN-*/`**: 한글 `report.md` + figure + `metrics.json`. `explog.py`로 생성.

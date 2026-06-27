@@ -1030,3 +1030,28 @@ runs in parallel, awaiting the pilot.
   representation (M-rep1 tissue-contrastive/LoRA, untested) or the validated data lever — not more
   resolution tuning.
 - **Reproduce:** `scripts/multiscale_refine.py`.
+
+### 049 — M-rep1: learned representation reshape (SupCon head) — the last representation lever, negative
+- **When:** 2026-06-28.
+- **Why:** the only representation lever never tried — *learn* a reshape so the nearest exemplar stops
+  crossing regions/tissues. 046 warned the exemplar already uses DINO's implicit tissue axis (AUC 0.76),
+  so a head must ADD beyond it; the class-level SupCon trap (~1.7 samples/fold-class) is real. Mitigate
+  per handout §0.2: train at TISSUE level (367/tissue) and a HIERARCHICAL tissue+class objective, and
+  preserve frozen region structure by also evaluating [frozen ; head] concat.
+- **What & How:** SupCon head (MLP 1536→512→128) on the frozen global+L256, trained **per-fold on the
+  gallery only** (leak-safe), τ=0.1, 120 epochs. Objectives tissue / class / hierarchical; spaces
+  head-only and frozen⊕head. Exemplar 1-NN, dev 10-seed CV select, sealed test once. Baseline = frozen
+  global+L256 (045: dev 33.5 / sealed 36.1).
+- **Result:** **every variant loses.** best = class:frozen+head dev **31.2 (Δ−2.35, 0/10)**;
+  hier:frozen+head 29.6 (−3.96, 1/10); class:head 28.5 (−5.0); tissue-only collapses (head 6.6, −27 —
+  pulling all arteries together across regions destroys class identity); tissue:frozen+head 26.3 (−7.2).
+  Sealed: frozen 36.1 → best 34.2 (CI 28.6–40.1). No objective, no space ≥ frozen.
+- **Conclusion:** a learned reshape does **not** beat the frozen exemplar — 046's lesson confirmed at the
+  *learning* level: the frozen DINO+L256 already captures what is separable on this data, and a
+  contrastive head overfits / destroys the region structure (top5) rather than adding within-region
+  tissue id. The SupCon trap holds even at tissue level and with region-preserving concat. **The
+  representation axis is exhausted except the single resolution win (045, global+L256, sealed 36.1).**
+  The remaining validated lever is **data** (project through-line §2 — data is the ceiling): readout (043),
+  reliability (037), cross-cadaver (038), relational (040/047), and now representation reshaping (046/049)
+  all converge there; only data scale (041: +8.9/+10.1) and input resolution (045: +2.6) ever moved it.
+- **Reproduce:** `scripts/learned_reshape.py`.
