@@ -1,4 +1,6 @@
-# SCALPEL 🔪 (v2 — real-data pivot)
+# SCALPEL 🔪
+
+> Last Updated: 2026/06/26 20:05 KST
 
 **S**ynthetic-to-real **C**adaveric **A**natomy **L**ocalization via
 **P**oint-conditioned **E**xpert **L**earning.

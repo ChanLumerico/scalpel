@@ -56,8 +56,15 @@ class StubBackend:
 # --------------------------------------------------------------------------- #
 # Prompt construction                                                         #
 # --------------------------------------------------------------------------- #
-def mark_pin(img, q, r: int = 14, style: str = "arrow",
-             angle_deg: float = 35.0, length: int = 95, color=(220, 20, 20)):
+def mark_pin(
+    img,
+    q,
+    r: int = 14,
+    style: str = "arrow",
+    angle_deg: float = 35.0,
+    length: int = 95,
+    color=(220, 20, 20),
+):
     """Set-of-Mark: mark pin ``q = (x, y)`` on a copy of ``img``.
 
     ``style="arrow"`` draws a thick red arrow pointing at q — the gross-anatomy
@@ -77,12 +84,16 @@ def mark_pin(img, q, r: int = 14, style: str = "arrow",
         cx, cy = out.width / 2.0, out.height / 2.0
         dx, dy = cx - x, cy - y
         d = math.hypot(dx, dy)
-        if d < 1.0:                                   # pin at centre: default angle
-            dx, dy, d = math.cos(math.radians(angle_deg)), math.sin(math.radians(angle_deg)), 1.0
-        a = math.atan2(dy, dx)                        # direction q -> interior (tail)
+        if d < 1.0:  # pin at centre: default angle
+            dx, dy, d = (
+                math.cos(math.radians(angle_deg)),
+                math.sin(math.radians(angle_deg)),
+                1.0,
+            )
+        a = math.atan2(dy, dx)  # direction q -> interior (tail)
         tx, ty = x + length * math.cos(a), y + length * math.sin(a)
         draw.line([tx, ty, x, y], fill=color, width=max(5, r // 2 * 2))
-        head = r + 10                                 # barbs at the tip, pointing back to tail
+        head = r + 10  # barbs at the tip, pointing back to tail
         p1 = (x + head * math.cos(a + 0.42), y + head * math.sin(a + 0.42))
         p2 = (x + head * math.cos(a - 0.42), y + head * math.sin(a - 0.42))
         draw.polygon([(x, y), p1, p2], fill=color)

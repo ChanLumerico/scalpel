@@ -17,10 +17,19 @@ from pathlib import Path
 _STATE = re.compile(r"\((?:reflected|cut|retracted|removed|partially[^)]*)\)", re.I)
 # standalone QuizLink abbreviations -> full word (matched per token after de-punct)
 _ABBR = {
-    "m": "muscle", "a": "artery", "v": "vein", "n": "nerve", "lig": "ligament",
-    "t": "tendon", "br": "branch", "gl": "gland",
+    "m": "muscle",
+    "a": "artery",
+    "v": "vein",
+    "n": "nerve",
+    "lig": "ligament",
+    "t": "tendon",
+    "br": "branch",
+    "gl": "gland",
     # doubled forms are the Latin plural ("mm." = musculi = muscles)
-    "mm": "muscles", "aa": "arteries", "vv": "veins", "nn": "nerves",
+    "mm": "muscles",
+    "aa": "arteries",
+    "vv": "veins",
+    "nn": "nerves",
 }
 
 
@@ -36,8 +45,8 @@ class Vocab:
     @staticmethod
     def normalize(raw: str) -> str:
         s = raw.strip().lower().replace("\n", " ")
-        s = _STATE.sub("", s)                       # drop "(reflected)" etc.
-        s = re.sub(r"[^a-z0-9 ]+", " ", s)          # strip punctuation ("m." -> "m")
+        s = _STATE.sub("", s)  # drop "(reflected)" etc.
+        s = re.sub(r"[^a-z0-9 ]+", " ", s)  # strip punctuation ("m." -> "m")
         toks = [_ABBR.get(t, t) for t in s.split()]  # expand standalone abbreviations
         return " ".join(toks).strip()
 
@@ -61,7 +70,9 @@ class Vocab:
 
     # -- persistence --------------------------------------------------------
     def save(self, path: str | Path) -> None:
-        Path(path).write_text(json.dumps(self._name_to_idx, ensure_ascii=False, indent=2))
+        Path(path).write_text(
+            json.dumps(self._name_to_idx, ensure_ascii=False, indent=2)
+        )
 
     @classmethod
     def load(cls, path: str | Path) -> "Vocab":

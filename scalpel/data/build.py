@@ -61,21 +61,32 @@ def build(pdf_dir: str, out_dir: str, vocab: Vocab | None = None) -> dict:
                     Image.fromarray(t.image).save(out / rel)
                     saved.add(key)
                 rec = {
-                    "image": rel, "q": [int(t.q[0]), int(t.q[1])], "label": t.label,
-                    "label_id": vocab.index(t.label), "page": int(t.page),
-                    "src": pdf.name, "w": int(t.image.shape[1]), "h": int(t.image.shape[0]),
+                    "image": rel,
+                    "q": [int(t.q[0]), int(t.q[1])],
+                    "label": t.label,
+                    "label_id": vocab.index(t.label),
+                    "page": int(t.page),
+                    "src": pdf.name,
+                    "w": int(t.image.shape[1]),
+                    "h": int(t.image.shape[0]),
                 }
                 f.write(json.dumps(rec, ensure_ascii=False) + "\n")
                 n_tri += 1
             print(f"  {pdf.name}: {len(triples)} triples")
     vocab.save(out / "vocab.json")
-    stats = {"pdfs": len(pdfs), "pdfs_with_triples": n_pdf_ok, "triples": n_tri,
-             "images": len(saved), "vocab": len(vocab)}
+    stats = {
+        "pdfs": len(pdfs),
+        "pdfs_with_triples": n_pdf_ok,
+        "triples": n_tri,
+        "images": len(saved),
+        "vocab": len(vocab),
+    }
     print(f"\nDONE (raw): {stats}")
 
     # quality pass: drop OCR junk, canonicalize labels, prune orphan images, so
     # the on-disk dataset is always the cleaned one (HANDOUT v2 §5.5).
     from .clean import clean_dataset
+
     print("\n[clean] canonicalizing labels + pruning junk ...")
     jsonl = str(out / "triples.jsonl")
     clean_dataset(jsonl, jsonl, tag=False, prune_images=True)

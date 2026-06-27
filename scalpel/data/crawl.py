@@ -34,18 +34,21 @@ ID_RE = re.compile(r"(?:/d/|[?&]id=)([A-Za-z0-9_-]{20,})")
 
 @dataclass
 class QuizLinkRef:
-    region: str          # "Lower Limb" etc. (for region filtering)
-    title: str           # heading near the widget, else an index
-    file_id: str         # Google Drive file id
-    source_url: str      # page it was found on (provenance / licence)
+    region: str  # "Lower Limb" etc. (for region filtering)
+    title: str  # heading near the widget, else an index
+    file_id: str  # Google Drive file id
+    source_url: str  # page it was found on (provenance / licence)
 
 
 def _slug(s: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")[:60] or "untitled"
 
 
-def discover(index_url: str = INDEX, region_filter: list[str] | None = None,
-             extra_urls: list[str] | None = None) -> list[QuizLinkRef]:
+def discover(
+    index_url: str = INDEX,
+    region_filter: list[str] | None = None,
+    extra_urls: list[str] | None = None,
+) -> list[QuizLinkRef]:
     """Headless-render the index (+ optional curriculum pages) and harvest Drive ids.
 
     A static fetch returns only the site nav; the Drive embeds appear only after
@@ -60,7 +63,7 @@ def discover(index_url: str = INDEX, region_filter: list[str] | None = None,
         pg = br.new_page()
         for url in urls:
             pg.goto(url, wait_until="networkidle", timeout=60_000)
-            try:                                          # Drive iframe loads late
+            try:  # Drive iframe loads late
                 pg.wait_for_selector("iframe[src*='drive.google.com']", timeout=15_000)
             except Exception:
                 pass
@@ -76,7 +79,9 @@ def discover(index_url: str = INDEX, region_filter: list[str] | None = None,
                 fid = m.group(1)
                 region = "unknown"
                 if region_filter:
-                    hit = next((k for k in region_filter if k.lower() in page_text), None)
+                    hit = next(
+                        (k for k in region_filter if k.lower() in page_text), None
+                    )
                     region = hit or "unknown"
                 refs.setdefault(fid, QuizLinkRef(region, f"quizlink_{i}", fid, url))
         br.close()
@@ -84,8 +89,10 @@ def discover(index_url: str = INDEX, region_filter: list[str] | None = None,
     out = list(refs.values())
     if region_filter:
         keys = [k.lower() for k in region_filter]
-        filtered = [r for r in out if any(k in (r.region + r.title).lower() for k in keys)]
-        out = filtered or out                             # keep all if heuristic missed
+        filtered = [
+            r for r in out if any(k in (r.region + r.title).lower() for k in keys)
+        ]
+        out = filtered or out  # keep all if heuristic missed
     return out
 
 
@@ -108,25 +115,31 @@ def download(ref: QuizLinkRef, out_dir: Path, retries: int = 3) -> Path | None:
     out_dir.mkdir(parents=True, exist_ok=True)
     dst = out_dir / f"{_slug(ref.region)}__{_slug(ref.title)}__{ref.file_id}.pdf"
     if _is_pdf(dst):
-        return dst                                        # cache: never re-download
+        return dst  # cache: never re-download
     for attempt in range(1, retries + 1):
         try:
             gdown.download(id=ref.file_id, output=str(dst), quiet=False)
             if _is_pdf(dst):
                 dst.with_suffix(".credit.txt").write_text(
                     f"{CREDIT}\nsource: {ref.source_url}\nfile_id: {ref.file_id}\n"
-                    f"downloaded: {dt.datetime.now().isoformat()}\n", encoding="utf-8")
+                    f"downloaded: {dt.datetime.now().isoformat()}\n",
+                    encoding="utf-8",
+                )
                 return dst
         except Exception as e:  # noqa: BLE001
             print(f"  retry {attempt}/{retries}: {e}")
-        time.sleep(2 * attempt)                           # backoff
+        time.sleep(2 * attempt)  # backoff
     print(f"  x failed: {ref.file_id}")
     return None
 
 
-def crawl(out_dir: str, region_filter: list[str] | None = None,
-          min_delay_s: float = 2.0, notified_authors: bool = False,
-          extra_urls: list[str] | None = None) -> Path:
+def crawl(
+    out_dir: str,
+    region_filter: list[str] | None = None,
+    min_delay_s: float = 2.0,
+    notified_authors: bool = False,
+    extra_urls: list[str] | None = None,
+) -> Path:
     """Discover + download QuizLink PDFs politely; accumulate a manifest.
 
     Ethics gate (§6): notifying the authors (bluelinkanatomy@gmail.com) is
@@ -134,8 +147,10 @@ def crawl(out_dir: str, region_filter: list[str] | None = None,
     to confirm. Without it the run still proceeds but warns.
     """
     if not notified_authors:
-        print("⚠️  Recommend notifying the authors (bluelinkanatomy@gmail.com) "
-              "before use — §6. Pass --notified to confirm.")
+        print(
+            "⚠️  Recommend notifying the authors (bluelinkanatomy@gmail.com) "
+            "before use — §6. Pass --notified to confirm."
+        )
 
     out = Path(out_dir)
     man = out / "manifest.json"
@@ -144,16 +159,22 @@ def crawl(out_dir: str, region_filter: list[str] | None = None,
 
     refs = discover(region_filter=region_filter, extra_urls=extra_urls)
     print(f"discovered {len(refs)} (region_filter={region_filter})")
-    for ref in refs:                                      # concurrency 1, sequential
+    for ref in refs:  # concurrency 1, sequential
         if ref.file_id in seen:
             continue
         p = download(ref, out)
         if p:
-            records.append({**asdict(ref), "path": str(p), "sha256": _sha256(p),
-                            "bytes": p.stat().st_size,
-                            "downloaded_at": dt.datetime.now().isoformat()})
+            records.append(
+                {
+                    **asdict(ref),
+                    "path": str(p),
+                    "sha256": _sha256(p),
+                    "bytes": p.stat().st_size,
+                    "downloaded_at": dt.datetime.now().isoformat(),
+                }
+            )
             man.write_text(json.dumps(records, ensure_ascii=False, indent=2))
-        time.sleep(min_delay_s)                           # polite delay
+        time.sleep(min_delay_s)  # polite delay
     print(f"done: {len(records)} in manifest -> {man}")
     return man
 
@@ -162,10 +183,17 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Fetch BlueLink QuizLink PDFs")
     ap.add_argument("--out", default="data/quizlink")
     ap.add_argument("--region", nargs="*", default=None)
-    ap.add_argument("--extra-urls", nargs="*", default=None,
-                    help="extra curriculum pages to also scan for Drive embeds")
-    ap.add_argument("--notified", action="store_true",
-                    help="confirm you have notified the BlueLink authors (§6)")
+    ap.add_argument(
+        "--extra-urls",
+        nargs="*",
+        default=None,
+        help="extra curriculum pages to also scan for Drive embeds",
+    )
+    ap.add_argument(
+        "--notified",
+        action="store_true",
+        help="confirm you have notified the BlueLink authors (§6)",
+    )
     a = ap.parse_args()
     crawl(a.out, a.region, notified_authors=a.notified, extra_urls=a.extra_urls)
     return 0

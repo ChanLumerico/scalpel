@@ -22,11 +22,12 @@ class Splits:
 
 
 def _specimen(t: Triple) -> str:
-    return f"{t.src}#{t.page}"          # one PDF page == one specimen
+    return f"{t.src}#{t.page}"  # one PDF page == one specimen
 
 
-def build_splits(triples: list[Triple], by: str = "specimen",
-                 test_frac: float = 0.3, seed: int = 0) -> Splits:
+def build_splits(
+    triples: list[Triple], by: str = "specimen", test_frac: float = 0.3, seed: int = 0
+) -> Splits:
     """Split triples into train/test grouped by specimen (no page in both)."""
     import numpy as np
 
@@ -49,6 +50,7 @@ def build_splits(triples: list[Triple], by: str = "specimen",
 def _items(triples: list[Triple], vocab: Vocab):
     """``(PIL image, (x, y), int_label)`` for the engine's gallery/test consumers."""
     from PIL import Image
+
     for t in triples:
         yield Image.fromarray(t.image), t.q, vocab.index(t.label)
 
