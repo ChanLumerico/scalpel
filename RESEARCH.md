@@ -1319,3 +1319,23 @@ runs in parallel, awaiting the pilot.
   (a cleaned subset might recover a small +0.5–1 top1; the durable Rohen value is *coverage*/vocabulary
   expansion, not current-eval top1). Rohen images kept local (copyrighted); candidates in data/rohen.
 - **Reproduce:** `scripts/rohen_effect.py`.
+
+### 062b / M-rohen0 — Rohen q-quality self-consistency — verify won't help (fine-structure domain gap)
+- **When:** 2026-06-28. **Why:** decide whether hand-verifying 287 pins is worth it WITHOUT labour. Is
+  062's flat top1 q-noise (fixable by verification) or a domain gap (not)?
+- **What:** query each matched Rohen exemplar (90) against OUR dev gallery (CSLS, global+L256); does our
+  model recognise it as its own labelled class? Compare to our own in-domain rate (test→dev) = the
+  recognizability ceiling.
+- **Result:** **Rohen self-match top1 12.1 / top5 19.0 vs our in-domain 38.3 / 52.8 (ratio 0.32/0.36).**
+  Per-tissue: vein 0%, nerve 0%, artery 9%, other 14%, **muscle 23%** (q-tolerant, best, but still ½ ours).
+- **Conclusion:** 🔴 **verification would NOT rescue it.** The 12→38 gap is far too large to be q-noise
+  (removing the ~25–30% off-pins would lift it to ~18 at best); and muscle — large, q-insensitive — is
+  still only 23% (½ our rate), so even with perfect pins a big gap remains. **The limit is a fine-structure
+  domain gap, not pin quality.** Key methodological lesson: **STEP-0's whole-image CLS gate said GO, but
+  scene-level domain match ≠ structure-level exemplar match** — Rohen's professional photography (lighting/
+  specimen/angle) makes its *specific structures* embed differently from our educational photos even when
+  the *scene* looks similar (the 027 OOD wall, at the fine-grained level). Decision: **do not invest the
+  hand-verification labour; drop Rohen as a gallery-exemplar source.** The validated data lever stays
+  *same-style educational* sources (BlueLink, +8.9), not professional atlases. Rohen's only residual value
+  is vocabulary/coverage (new structure names), not current-eval accuracy.
+- **Reproduce:** `scripts/rohen_qcheck.py`. (Saved data/rohen/qcheck.json.)
