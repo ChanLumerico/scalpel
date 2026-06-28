@@ -1245,3 +1245,25 @@ runs in parallel, awaiting the pilot.
   >5 (only ~15% of misses are top-3-rescuable)** — errors are genuinely hard, not near-misses, bounding
   readout/tie-break gains. **Output:** `experiments/058-xai-poster/poster.private.png` (cadaver imagery →
   gitignored §3); script + metrics committable. **Reproduce:** `scripts/xai_poster.py`.
+
+### 059 — M-llm0: bare Vision-LLM gate (Qwen2.5-VL-7B-4bit, MLX, no Atlas) — STOP, the LLM is a far worse discriminator
+- **When:** 2026-06-28 (autonomous). **Why:** before expensive Atlas knowledge-grounding, gate whether a
+  vision-LLM can even *see* the pinned structure — re-rank DINO top-k → top1. rev2: K10 candidates (poster
+  panel 16: most misses rank >5), V_both input (global+marker & L256 crop, poster panel 7), and a BLIND
+  control (candidates only, no image) to separate vision from language priors (027 trap).
+- **What & How:** sealed test, candidates = DINO global+L256+CSLS top-10; recall@k = the LLM ceiling.
+  Qwen2.5-VL-7B-4bit via MLX (local, free), greedy. Pilot n=50. Metrics: qwen_top1, vision_gain
+  (image−blind), rerank_gain (vs 38.3), ceiling_frac.
+- **Result:** recall@10 ceiling **56.0**. **Qwen top1 (image) 14.0** (ceiling_frac 0.25) vs blind 6.0 →
+  **vision_gain +8.0 🟢** (it does use the image), but **rerank_gain −24.3 🔴** (14 ≪ DINO 38.3). Even when
+  the truth IS in the 10 candidates (28/50), Qwen picks it only **7/28 = 25%**; 12/21 wrong picks cross
+  the tissue type (broad failure, not just artery↔vein). parse_fail 0%.
+- **Conclusion:** 🔴 **STOP the LLM-rerank path.** Qwen2.5-VL *sees* the photo (vision_gain +8, image helps
+  7 / misleads 3) but is a **far weaker anatomical discriminator than DINO 1-NN** — re-ranking DINO's
+  candidates *destroys* performance (38.3→14). The bottleneck is not candidate quality (recall@10=56) but
+  the LLM's poor visual discrimination of cadaver structures (25% even when the answer is listed). **Atlas
+  grounding (M-llm1) cannot fix a model that can't visually tell the structures apart** — knowledge can't
+  substitute for missing visual discrimination. The +8 vision_gain is a real-but-weak signal (not pure
+  language prior, unlike the 027 BiomedCLIP failure), scientifically interesting but far below useful. The
+  retrieval engine (DINO+L256+CSLS, 38.3) remains the best; a 7B vision-LLM is not a viable readout here.
+- **Reproduce:** `scripts/llm_rerank_probe.py --limit 50` (Qwen2.5-VL-7B-4bit, MLX).

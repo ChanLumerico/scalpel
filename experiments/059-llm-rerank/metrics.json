@@ -1,0 +1,472 @@
+{
+  "title": "M-llm0 Qwen2.5-VL gate",
+  "n_sealed": 50,
+  "K": 10,
+  "model": "mlx-community/Qwen2.5-VL-7B-Instruct-4bit",
+  "recall_at": {
+    "1": 44.0,
+    "3": 50.0,
+    "5": 56.00000000000001,
+    "10": 56.00000000000001
+  },
+  "qwen_top1": 14.0,
+  "blind_top1": 6.0,
+  "vision_gain": 8.0,
+  "rerank_gain": -24.3,
+  "ceiling_frac": 0.25,
+  "parse_fail_pct": 0.0,
+  "baseline": 38.3,
+  "verdict_sees_image": true,
+  "log": [
+    {
+      "q": 11,
+      "truth": "pancreatic duct",
+      "img_pick": "greater pancreatic artery",
+      "img_correct": 0,
+      "blind_pick": null,
+      "blind_correct": 0,
+      "truth_in_cands": false
+    },
+    {
+      "q": 41,
+      "truth": "celiac trunk",
+      "img_pick": "splenic artery",
+      "img_correct": 0,
+      "blind_pick": "splenic artery",
+      "blind_correct": 0,
+      "truth_in_cands": false
+    },
+    {
+      "q": 42,
+      "truth": "l renal artery",
+      "img_pick": "l renal vein",
+      "img_correct": 0,
+      "blind_pick": "l renal artery",
+      "blind_correct": 1,
+      "truth_in_cands": true
+    },
+    {
+      "q": 103,
+      "truth": "subcostal nerve",
+      "img_pick": "superior vena cava",
+      "img_correct": 0,
+      "blind_pick": "deltoid muscle",
+      "blind_correct": 0,
+      "truth_in_cands": true
+    },
+    {
+      "q": 104,
+      "truth": "psoas major muscle",
+      "img_pick": "femoral nerve",
+      "img_correct": 0,
+      "blind_pick": "genitofemoral nerve",
+      "blind_correct": 0,
+      "truth_in_cands": true
+    },
+    {
+      "q": 105,
+      "truth": "genitofemoral nerve",
+      "img_pick": "femoral vein",
+      "img_correct": 0,
+      "blind_pick": null,
+      "blind_correct": 0,
+      "truth_in_cands": true
+    },
+    {
+      "q": 106,
+      "truth": "femoral nerve",
+      "img_pick": "femoral nerve",
+      "img_correct": 1,
+      "blind_pick": "inguinal ligament",
+      "blind_correct": 0,
+      "truth_in_cands": true
+    },
+    {
+      "q": 107,
+      "truth": "subcostal nerve",
+      "img_pick": "subcostal nerve",
+      "img_correct": 1,
+      "blind_pick": "l renal vein",
+      "blind_correct": 0,
+      "truth_in_cands": true
+    },
+    {
+      "q": 110,
+      "truth": "femoral nerve",
+      "img_pick": "external iliac artery",
+      "img_correct": 0,
+      "blind_pick": null,
+      "blind_correct": 0,
+      "truth_in_cands": true
+    },
+    {
+      "q": 157,
+      "truth": "inferior gluteal artery",
+      "img_pick": "internal pudendal artery",
+      "img_correct": 0,
+      "blind_pick": "inferior gluteal artery",
+      "blind_correct": 1,
+      "truth_in_cands": true
+    },
+    {
+      "q": 158,
+      "truth": "peed artery",
+      "img_pick": "inferior vesical artery",
+      "img_correct": 0,
+      "blind_pick": null,
+      "blind_correct": 0,
+      "truth_in_cands": false
+    },
+    {
+      "q": 159,
+      "truth": "ureter",
+      "img_pick": "vertebral artery",
+      "img_correct": 0,
+      "blind_pick": "superior vesical artery",
+      "blind_correct": 0,
+      "truth_in_cands": false
+    },
+    {
+      "q": 171,
+      "truth": "trigeminal nerve cn vein",
+      "img_pick": "cricoid cartilage",
+      "img_correct": 0,
+      "blind_pick": null,
+      "blind_correct": 0,
+      "truth_in_cands": false
+    },
+    {
+      "q": 172,
+      "truth": "optic nerve cn ii",
+      "img_pick": "posterior ethmoidal artery",
+      "img_correct": 0,
+      "blind_pick": "straight sinus",
+      "blind_correct": 0,
+      "truth_in_cands": false
+    },
+    {
+      "q": 173,
+      "truth": "internal carotid artery",
+      "img_pick": "posterior ethmoidal artery",
+      "img_correct": 0,
+      "blind_pick": null,
+      "blind_correct": 0,
+      "truth_in_cands": false
+    },
+    {
+      "q": 175,
+      "truth": "trochlear nerve cn iv",
+      "img_pick": "cavernous sinus",
+      "img_correct": 0,
+      "blind_pick": null,
+      "blind_correct": 0,
+      "truth_in_cands": false
+    },
+    {
+      "q": 177,
+      "truth": "facial nerve cn vii",
+      "img_pick": "oculomotor nerve cn iii inferior branch",
+      "img_correct": 0,
+      "blind_pick": null,
+      "blind_correct": 0,
+      "truth_in_cands": false
+    },
+    {
+      "q": 178,
+      "truth": "vestibulocochlear nerve cn viii",
+      "img_pick": "oculomotor nerve cn iii inferior branch",
+      "img_correct": 0,
+      "blind_pick": null,
+      "blind_correct": 0,
+      "truth_in_cands": false
+    },
+    {
+      "q": 179,
+      "truth": "glossopharyngeal nerve cn ix",
+      "img_pick": "thyroid cartilage",
+      "img_correct": 0,
+      "blind_pick": "cricoid cartilage",
+      "blind_correct": 0,
+      "truth_in_cands": false
+    },
+    {
+      "q": 180,
+      "truth": "vagus nerve cn x",
+      "img_pick": "thyroid cartilage",
+      "img_correct": 0,
+      "blind_pick": "cricoid cartilage",
+      "blind_correct": 0,
+      "truth_in_cands": false
+    },
+    {
+      "q": 181,
+      "truth": "accessory nerve cn xi",
+      "img_pick": "cricoid cartilage",
+      "img_correct": 0,
+      "blind_pick": "transverse sinus",
+      "blind_correct": 0,
+      "truth_in_cands": false
+    },
+    {
+      "q": 182,
+      "truth": "vagus nerve cn x",
+      "img_pick": "thoracic aorta",
+      "img_correct": 0,
+      "blind_pick": "posterior spinal artery",
+      "blind_correct": 0,
+      "truth_in_cands": false
+    },
+    {
+      "q": 183,
+      "truth": "accessory nerve cn xi",
+      "img_pick": "phrenic nerve",
+      "img_correct": 0,
+      "blind_pick": "anterior vagal trunk",
+      "blind_correct": 0,
+      "truth_in_cands": false
+    },
+    {
+      "q": 196,
+      "truth": "cavernous sinus",
+      "img_pick": "inguinal ligament",
+      "img_correct": 0,
+      "blind_pick": null,
+      "blind_correct": 0,
+      "truth_in_cands": true
+    },
+    {
+      "q": 198,
+      "truth": "falx cerebri",
+      "img_pick": "ureteric orifices",
+      "img_correct": 0,
+      "blind_pick": "stomach",
+      "blind_correct": 0,
+      "truth_in_cands": false
+    },
+    {
+      "q": 200,
+      "truth": "great cerebral vein",
+      "img_pick": "jugular foramen",
+      "img_correct": 0,
+      "blind_pick": "confluence of sinuses",
+      "blind_correct": 0,
+      "truth_in_cands": true
+    },
+    {
+      "q": 201,
+      "truth": "straight sinus",
+      "img_pick": "straight sinus",
+      "img_correct": 1,
+      "blind_pick": "great cerebral vein",
+      "blind_correct": 0,
+      "truth_in_cands": true
+    },
+    {
+      "q": 202,
+      "truth": "transverse sinus",
+      "img_pick": "straight sinus",
+      "img_correct": 0,
+      "blind_pick": null,
+      "blind_correct": 0,
+      "truth_in_cands": true
+    },
+    {
+      "q": 214,
+      "truth": "emissary vein",
+      "img_pick": "sigmoid arteries",
+      "img_correct": 0,
+      "blind_pick": "greater palatine nerve",
+      "blind_correct": 0,
+      "truth_in_cands": false
+    },
+    {
+      "q": 226,
+      "truth": "frontal lobe",
+      "img_pick": "meningeal branch",
+      "img_correct": 0,
+      "blind_pick": "occipital lobe",
+      "blind_correct": 0,
+      "truth_in_cands": false
+    },
+    {
+      "q": 248,
+      "truth": "talus",
+      "img_pick": "tibial tuberosity",
+      "img_correct": 0,
+      "blind_pick": "glenohumeral joint",
+      "blind_correct": 0,
+      "truth_in_cands": true
+    },
+    {
+      "q": 250,
+      "truth": "talus",
+      "img_pick": "talus",
+      "img_correct": 1,
+      "blind_pick": "supraspinatus muscle",
+      "blind_correct": 0,
+      "truth_in_cands": true
+    },
+    {
+      "q": 268,
+      "truth": "adductor longus muscle",
+      "img_pick": "gracilis muscle",
+      "img_correct": 0,
+      "blind_pick": "flexor carpi ulnaris muscle tendon",
+      "blind_correct": 0,
+      "truth_in_cands": true
+    },
+    {
+      "q": 269,
+      "truth": "iliopsoas muscle",
+      "img_pick": "femoral artery",
+      "img_correct": 0,
+      "blind_pick": "femoral artery",
+      "blind_correct": 0,
+      "truth_in_cands": true
+    },
+    {
+      "q": 301,
+      "truth": "deltoid muscle",
+      "img_pick": "greater trochanter",
+      "img_correct": 0,
+      "blind_pick": "common fibular nerve",
+      "blind_correct": 0,
+      "truth_in_cands": true
+    },
+    {
+      "q": 302,
+      "truth": "teres major muscle",
+      "img_pick": "greater trochanter",
+      "img_correct": 0,
+      "blind_pick": "uterus",
+      "blind_correct": 0,
+      "truth_in_cands": true
+    },
+    {
+      "q": 335,
+      "truth": "median nerve",
+      "img_pick": "median nerve",
+      "img_correct": 1,
+      "blind_pick": null,
+      "blind_correct": 0,
+      "truth_in_cands": true
+    },
+    {
+      "q": 336,
+      "truth": "ulnar artery",
+      "img_pick": "radial artery",
+      "img_correct": 0,
+      "blind_pick": "esophagus",
+      "blind_correct": 0,
+      "truth_in_cands": true
+    },
+    {
+      "q": 337,
+      "truth": "ulnar nerve",
+      "img_pick": "median nerve",
+      "img_correct": 0,
+      "blind_pick": null,
+      "blind_correct": 0,
+      "truth_in_cands": false
+    },
+    {
+      "q": 341,
+      "truth": "gluteus medius muscle",
+      "img_pick": "teres minor muscle",
+      "img_correct": 0,
+      "blind_pick": "gluteus medius muscle",
+      "blind_correct": 1,
+      "truth_in_cands": true
+    },
+    {
+      "q": 342,
+      "truth": "gluteus maximus muscle",
+      "img_pick": "external oblique muscle",
+      "img_correct": 0,
+      "blind_pick": "external oblique muscle",
+      "blind_correct": 0,
+      "truth_in_cands": false
+    },
+    {
+      "q": 364,
+      "truth": "tibia",
+      "img_pick": "pubic symphysis",
+      "img_correct": 0,
+      "blind_pick": "central tendon deep",
+      "blind_correct": 0,
+      "truth_in_cands": true
+    },
+    {
+      "q": 366,
+      "truth": "fibula",
+      "img_pick": "ischium",
+      "img_correct": 0,
+      "blind_pick": null,
+      "blind_correct": 0,
+      "truth_in_cands": false
+    },
+    {
+      "q": 371,
+      "truth": "tibialis anterior muscle",
+      "img_pick": "superficial fibular nerve",
+      "img_correct": 0,
+      "blind_pick": "superficial fibular nerve",
+      "blind_correct": 0,
+      "truth_in_cands": true
+    },
+    {
+      "q": 372,
+      "truth": "superficial fibular nerve",
+      "img_pick": "superficial fibular nerve",
+      "img_correct": 1,
+      "blind_pick": null,
+      "blind_correct": 0,
+      "truth_in_cands": true
+    },
+    {
+      "q": 373,
+      "truth": "soleus muscle",
+      "img_pick": "extensor digitorum longus muscle",
+      "img_correct": 0,
+      "blind_pick": null,
+      "blind_correct": 0,
+      "truth_in_cands": false
+    },
+    {
+      "q": 374,
+      "truth": "soleus muscle",
+      "img_pick": "superficial fibular nerve",
+      "img_correct": 0,
+      "blind_pick": "superficial fibular nerve",
+      "blind_correct": 0,
+      "truth_in_cands": true
+    },
+    {
+      "q": 375,
+      "truth": "gastrocnemius muscle",
+      "img_pick": "gastrocnemius muscle",
+      "img_correct": 1,
+      "blind_pick": null,
+      "blind_correct": 0,
+      "truth_in_cands": true
+    },
+    {
+      "q": 376,
+      "truth": "calcaneal tendon",
+      "img_pick": "fibula",
+      "img_correct": 0,
+      "blind_pick": "anterior vagal trunk",
+      "blind_correct": 0,
+      "truth_in_cands": true
+    },
+    {
+      "q": 377,
+      "truth": "posterior tibial artery",
+      "img_pick": "tibial nerve",
+      "img_correct": 0,
+      "blind_pick": null,
+      "blind_correct": 0,
+      "truth_in_cands": true
+    }
+  ]
+}
