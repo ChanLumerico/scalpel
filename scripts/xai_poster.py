@@ -366,7 +366,7 @@ def main():
     ax.set_title(f"16. rank of the TRUTH (CSLS)\nof misses, {resc:.0f}% have truth in top-3 (rescuable)", fontsize=12.5)
     ax.set_ylabel("count"); ax.set_xlabel("rank of true label"); addgrid(ax, "y")
 
-    fig.tight_layout(rect=[0, 0, 1, 0.985])
+    fig.tight_layout(pad=0.5, w_pad=0.4, h_pad=0.9, rect=[0, 0, 1, 0.99])
     out = Path("experiments/058-xai-poster"); out.mkdir(parents=True, exist_ok=True)
     p = out / "poster.private.png"
     fig.savefig(p, dpi=200, bbox_inches="tight", facecolor="white"); plt.close(fig)
