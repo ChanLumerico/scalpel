@@ -1,0 +1,14 @@
+{
+  "title": "Rohen gallery 확장 효과 (raw q)",
+  "date": "2026-06-28",
+  "headline": "baseline 38.3 → +Rohen matched 38.1(Δ-0.2) / all 38.1(Δ-0.2) cov Δ+1.2 (RAW q, n_match 90)",
+  "baseline_top1": 38.3,
+  "baseline_cov": 79.8,
+  "rohen_matched_top1": 38.1,
+  "delta_matched": -0.2,
+  "rohen_all_top1": 38.1,
+  "delta_all": -0.2,
+  "cov_delta_all": 1.2,
+  "n_candidates": 287,
+  "n_matched": 90
+}

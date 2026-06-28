@@ -1302,3 +1302,20 @@ runs in parallel, awaiting the pilot.
   good triples → add to gallery → **sealed Δtop1 is the decisive STEP-1 gate (effect ≠ format)**. Rohen
   images kept local (copyrighted); only the script is committed.
 - **Reproduce:** `scripts/rohen_extract.py --pages 250,251,73,330`.
+
+### 062 / M-rohen0 STEP-1d — Rohen gallery-expansion effect (raw q) — weak: top1 flat, coverage +1.2
+- **When:** 2026-06-28. **Why:** user-agreed order — measure Δtop1 with RAW (unverified) q first; verify by
+  hand only if the effect is proven. **What:** 287 full-book candidates → vitb14 global+L256 embeddings →
+  label-normalise & match to our classes (90 matched) → add to dev gallery → sealed Δtop1 (041-style, CSLS).
+- **Result:** baseline (dev only) top1 38.3 / cov 79.8. **+Rohen matched-90: top1 38.1 (Δ−0.2), cov 81.0
+  (Δ+1.2)**; +Rohen all-287 identical (the 197 new-structure exemplars are OOV for the 502-way eval, add
+  nothing). 
+- **Conclusion:** 🟡 **weak.** The +1.2 coverage proves Rohen genuinely domain-matches (its exemplars are
+  retrieved, extend the gallery) — consistent with STEP 0's GO. But top1 is flat/−0.2: raw-q noise (~25–30%
+  of pins are off → those exemplars embed the wrong structure and mislead) plus only 90 matched classes cap
+  it. Unlike BlueLink (+8.9, the *same* educational domain with 49% identical photos), Rohen's professional-
+  photography sub-gap + limited class overlap make it a much weaker lever. Per the agreed plan the effect is
+  **not clearly proven on raw q**, so hand-verification is unlikely to turn it into a BlueLink-scale gain
+  (a cleaned subset might recover a small +0.5–1 top1; the durable Rohen value is *coverage*/vocabulary
+  expansion, not current-eval top1). Rohen images kept local (copyrighted); candidates in data/rohen.
+- **Reproduce:** `scripts/rohen_effect.py`.
