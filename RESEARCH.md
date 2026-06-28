@@ -1285,3 +1285,20 @@ runs in parallel, awaiting the pilot.
   027 BiomedCLIP OOD). The mild sub-clustering means the benefit may be partial; **the decisive test is
   STEP 1's actual sealed Δtop1 (effect ≠ format)**. Proceed to a small extraction pilot.
 - **Reproduce:** `scripts/rohen_domain_probe.py`. (Rohen images not committed — copyrighted atlas, kept local.)
+
+### 061 / M-rohen0 STEP 1 — semi-automatic Rohen (I,q,y) extractor (in progress, human q-verification)
+- **When:** 2026-06-28 (autonomous). **Why:** STEP 0 GO → extract (I,q,y). User chose the semi-automatic
+  path (machine proposes q, human verifies). Black leader lines are the crux (naive Hough 6/31).
+- **What & How:** per page — main photo + legend (number→name via `extract_text`) + margin-number OCR
+  (tesseract) + **number-anchored dark-line trace**. Key CV: isolate the straight horizontal leader lines
+  from dense curvy tissue texture via **vertical black-hat (1×9) → threshold → long-horizontal open (41×1)**
+  (a plain black-hat caught 38% of pixels = all tissue; the directional version → 1.7%, the lines). March
+  inward from each margin number along this clean mask → tissue endpoint = candidate q. Overlay (numbered
+  pins) for human review; candidates JSON.
+- **Result (pilot):** ~10 accurate candidate q's/page on clean dissection pages (p250, p251), reasonably
+  placed at the leader-line tips (spot-checked visually). Recall limited by margin-number OCR (~16/31) and
+  page selection (some pages' main image <40 KB). Enough for a verification pilot.
+- **Status:** extractor works; awaiting human q-verification on the overlays (mark wrong pins) → keep the
+  good triples → add to gallery → **sealed Δtop1 is the decisive STEP-1 gate (effect ≠ format)**. Rohen
+  images kept local (copyrighted); only the script is committed.
+- **Reproduce:** `scripts/rohen_extract.py --pages 250,251,73,330`.
