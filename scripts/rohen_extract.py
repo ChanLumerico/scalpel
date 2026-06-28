@@ -86,8 +86,14 @@ def trace(mask, mx, my, side, W, band=9, maxgap=34):
     return last
 
 
+EXCLUDE = ("section", "mri", "radiograph", "schematic", "diagram", "ct ", "tomograph")
+
+
 def process(pg, reader):
     page = reader.pages[pg]
+    txt = (page.extract_text() or "")
+    if any(k in txt.lower() for k in EXCLUDE):          # skip imaging/section/illustration pages
+        return None
     imgs = sorted(page.images, key=lambda im: len(im.data), reverse=True)
     if not imgs or len(imgs[0].data) < 40000:
         return None
@@ -123,27 +129,41 @@ def process(pg, reader):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--pages", default="250,73,251,254,258,262")
+    ap.add_argument("--pages", default="")
+    ap.add_argument("--range", default="20-540", help="full-book page range start-end")
+    ap.add_argument("--min-cand", type=int, default=3, help="save overlay only if >= this many candidates")
     args = ap.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
     reader = PdfReader(PDF)
-    pages = [int(p) for p in args.pages.split(",")]
-    summary = []
-    allc = []
+    if args.pages:
+        pages = [int(p) for p in args.pages.split(",")]
+    else:
+        a, b = args.range.split("-"); pages = list(range(int(a), min(int(b), len(reader.pages))))
+    summary = []; allc = []; n_photo = 0
     for pg in pages:
-        r = process(pg, reader)
+        try:
+            r = process(pg, reader)
+        except Exception as e:
+            print(f"  p{pg}: err {str(e)[:40]}"); continue
         if not r:
-            print(f"  p{pg}: no main photo"); continue
-        cv2.imwrite(str(OUT / f"p{pg}_overlay.png"), r["vis"])
-        cv2.imwrite(str(OUT / f"p{pg}_clean.png"), r["img"])
-        print(f"  p{pg}: legend {len(r['legend'])} | candidate q's {len(r['candidates'])} "
-              f"({sorted(c['num'] for c in r['candidates'])})")
-        summary.append({"page": pg, "n_legend": len(r["legend"]), "n_cand": len(r["candidates"])})
+            continue
+        n_photo += 1
+        nc = len(r["candidates"])
+        if nc >= args.min_cand:
+            cv2.imwrite(str(OUT / f"p{pg}_overlay.png"), r["vis"])
+            cv2.imwrite(str(OUT / f"p{pg}_clean.png"), r["img"])
+        if nc:
+            print(f"  p{pg}: legend {len(r['legend'])} | q {nc} ({sorted(c['num'] for c in r['candidates'])})")
+        summary.append({"page": pg, "n_legend": len(r["legend"]), "n_cand": nc})
         for c in r["candidates"]:
             allc.append({"page": pg, **{k: c[k] for k in ("num", "name", "q", "side")}})
     (OUT / "candidates.json").write_text(json.dumps(allc, ensure_ascii=False, indent=2))
-    print(f"\n{len(allc)} candidate (q,y) across {len(summary)} pages → {OUT}/candidates.json")
-    print(f"overlays: {OUT}/p<page>_overlay.png  (review: which numbers' pins are wrong?)")
+    (OUT / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2))
+    pages_with_cand = sum(1 for s in summary if s["n_cand"] > 0)
+    print(f"\n==== FULL BOOK ====")
+    print(f"  pages scanned {len(pages)} | with main cadaver photo {n_photo} | with >=1 candidate {pages_with_cand}")
+    print(f"  total candidate (I,q,y) {len(allc)} | overlays saved for pages with >={args.min_cand} candidates")
+    print(f"  → {OUT}/candidates.json ({len(allc)}), overlays {OUT}/p<page>_overlay.png")
     return 0
 
 
