@@ -1267,3 +1267,21 @@ runs in parallel, awaiting the pilot.
   language prior, unlike the 027 BiomedCLIP failure), scientifically interesting but far below useful. The
   retrieval engine (DINO+L256+CSLS, 38.3) remains the best; a 7B vision-LLM is not a viable readout here.
 - **Reproduce:** `scripts/llm_rerank_probe.py --limit 50` (Qwen2.5-VL-7B-4bit, MLX).
+
+## Phase 17 — Data expansion via Rohen Atlas (the validated lever), honesty-gated
+
+### 060 / M-rohen0 STEP 0 — Rohen Atlas domain gate — 🟢 GO (in-domain, mild sub-cluster)
+- **When:** 2026-06-28 (autonomous). **Why:** before a multi-day Rohen extraction pipeline, gate the 027
+  risk — Rohen is *professional publication* photography, ours is *educational*; if Rohen is a separate
+  OOD island, adding it to the gallery won't match our queries.
+- **What & How:** extract 60 Rohen main photos (largest image/page >40KB, excluding section/MRI/illustration
+  by text keywords) + 220 of our images, embed both with the SAME global rep (frozen vitb14@518 **CLS**, no
+  pin → fair image-level comparison). Three cosine distances + 20-NN domain purity + t-SNE overlay.
+- **Result:** **Rohen↔ours 0.391 ≈ ours↔ours 0.382 (ratio 1.02)** — NOT a far OOD island (cf. 027). t-SNE:
+  Rohen interspersed through our distribution, no separate cluster. *Caveat:* Rohen↔Rohen 0.476 (tighter)
+  and Rohen's 20-NN are 52% ours vs 79% base-rate → a mild Rohen sub-style clustering (consistent
+  professional photography), but well within distribution.
+- **Conclusion:** 🟢 **GO** — the cross-domain distance is in-domain-level, so Rohen is usable (unlike the
+  027 BiomedCLIP OOD). The mild sub-clustering means the benefit may be partial; **the decisive test is
+  STEP 1's actual sealed Δtop1 (effect ≠ format)**. Proceed to a small extraction pilot.
+- **Reproduce:** `scripts/rohen_domain_probe.py`. (Rohen images not committed — copyrighted atlas, kept local.)

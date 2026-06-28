@@ -1,0 +1,15 @@
+{
+  "title": "Rohen 도메인 게이트 (STEP 0)",
+  "date": "2026-06-28",
+  "headline": "Rohen↔ours 0.391 vs ours↔ours 0.382 (ratio 1.02); NN-ours 0.52/base 0.79 → GO",
+  "n_rohen": 60,
+  "n_ours": 220,
+  "gate": "GO",
+  "d_ours_ours": 0.382,
+  "d_rohen_rohen": 0.476,
+  "d_cross": 0.391,
+  "ratio_cross_to_ours": 1.022,
+  "frac_ours_in_rohen_20nn": 0.515,
+  "base_rate": 0.786,
+  "nn1_is_ours_frac": 0.25
+}
