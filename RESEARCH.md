@@ -1157,21 +1157,32 @@ runs in parallel, awaiting the pilot.
 
 ## Phase 16 — Backbone sweep (the real untried lever: generation change), autonomous
 
-### 056 — M-bb0 backbone sweep (minimal setting) — DINOv2 size negative; DINOv3 gated (pending license)
+### 056 — M-bb0 backbone sweep (minimal setting) — DINOv3 is NOT a clean lever; only DINOv2-size (vitg14) reliably helps
 - **When:** 2026-06-28 (autonomous).
-- **Why:** the largest untouched lever — 9 months on one DINOv2 generation. 019 compared only sizes
+- **Why:** the largest untouched lever — 9 months on one DINOv2 *generation*. 019 compared only sizes
   (+1.1). The 042/044 bottleneck (tissue entanglement) is a *feature-quality* problem → swap the backbone
-  (training-free re-embed, like 045). Built a sweep harness: k-NN top1 (= our readout, the selection
-  metric) + diagnostics (silhouette, hubness skew, tissue/region centroid sep).
-- **What & How:** minimal setting (σ40 GaussianPool + exemplar 1-NN, no L256/CSLS), clean 502, 10-seed.
-  DINOv2 {vitb14 baseline, vitl14}. **DINOv3 {vitb16, vitl16} is the key candidate but HF gated=manual
-  (403) — needs license acceptance on the repo page; harness leaves a one-line slot.**
-- **Result:** DINOv2-vitl14 ≈ vitb14 — k-NN top1 **29.0 vs 28.9 (Δ+0.09, 4/10)**; diagnostics unchanged
-  (silhouette −0.14, hubness 0.84 vs 0.70, **tissue_sep −0.002 ≈ 0**, region_sep ~0). Bigger DINOv2 does
-  not separate tissue any better — same entanglement.
-- **Conclusion:** within-generation size is **not** the lever (confirms 019 on clean data with the full
-  metric suite). The real test — a *generation* change (DINOv3: fine-grained SOTA, retrieval +10.8,
-  sharp dense features) — is blocked by the HF license gate. **Action for next session: accept the DINOv3
-  license**, then the harness runs it in one line. Harness is the deliverable; DINOv2-size is a clean
-  negative.
-- **Reproduce:** `scripts/backbone_sweep.py vitl14` (add DINOv3 variants to BACKBONES after license).
+  (training-free re-embed, like 045). Harness: k-NN top1 (= our readout = the selection metric) +
+  diagnostics (silhouette, hubness skew, tissue/region centroid sep).
+- **What & How:** minimal setting (σ40 GaussianPool + exemplar 1-NN, no L256/CSLS), patch-normalised σ,
+  clean 502, 10-seed. Backbones: DINOv2 {vitb14 base, vitl14, vitg14}, DINOv3 {small, base, large} at 512
+  and base/large at 768. **DINOv3 is gated on HF (facebook/dinov3-*, 403) but `timm` hosts the same
+  weights openly (`vit_*_dinov3.lvd1689m`) → gate bypassed.** Sealed-tested the top-3 dev candidates to
+  expose any dev-CV↔sealed discrepancy.
+- **Result:** dev-CV — DINOv2-vitb14 28.9; **dinov3-base@768 31.9 (Δ+3.04, 9/10)**, dinov3-large@768 30.6
+  (+1.69), dinov3-base@512 29.2 (+0.37), dinov3-small/large@512 28.4/28.8 (≤0), **DINOv2-vitg14 31.3
+  (Δ+2.43, 9/10)**, vitl14 29.0. **But the sealed test breaks the tie:** sealed base 33.5 → dinov3-base@768
+  **32.0 (BELOW baseline!)**, dinov3-large@768 33.5 (=base), **DINOv2-vitg14 36.8**. So the *reliable* best
+  (dev↑ AND sealed↑) is **DINOv2-vitg14 only**. Crucially **tissue_sep ≈ 0 for every backbone** (vitg14
+  −0.001, dinov3 −0.008..−0.01) — none separates artery/vein/nerve.
+- **Conclusion:** (1) **A generation change (DINOv3) is NOT the lever.** At matched res DINOv3 ≈ DINOv2;
+  at high res (768) dinov3-base *appears* to win dev-CV (+3.04) but the sealed test exposes it as a
+  resolution-driven *mirage* (32.0 < 33.5) — the benchmark gains (retrieval +10.8, fine-grained SOTA)
+  do not transfer to a frozen 1-NN readout on OOD cadaver tissue (the same OOD wall that sank BiomedCLIP
+  in 027). Another textbook §1.7 save — dev-CV alone would have adopted DINOv3. (2) **The only reliable
+  backbone lever is size — DINOv2-vitg14** (dev +2.43 / sealed 36.8, 1.1B params), but it improves only
+  *general* quality (hubness 0.70, silhouette −0.106), **not** the tissue axis — tissue_sep stays ~0, so
+  even the giant does not crack the core bottleneck. (3) Resolution matters more than generation for
+  DINOv3 (512→768 = +2.7 dev) — consistent with 045's resolution lever. Next: M-bb1 — does vitg14 stack
+  with L256+CSLS to beat the current best (vitb14+L256+CSLS, sealed 38.3)?
+- **Reproduce:** `scripts/backbone_sweep.py dinov3-base-768 dinov3-large-768 vitg14 vitl14` (timm bypasses
+  the DINOv3 HF gate; weights cached to `data/merged_final/_bb_*.npy`).

@@ -1,9 +1,15 @@
 {
   "title": "백본 sweep (최소 세팅, 학습 0)",
   "date": "2026-06-28",
-  "headline": "sweep ['DINOv2-vitb14 (base)', 'DINOv2-vitl14'] | best=DINOv2-vitl14 Δ0.09 | DINOv3 gated 대기",
-  "adopt": false,
-  "best": "DINOv2-vitl14",
+  "headline": "DINOv3 NOT a clean lever (base@768 dev 31.9 but sealed 32.0<33.5, mirage); reliable best=DINOv2-vitg14 (dev +2.43, sealed 36.8); tissue_sep≈0 all → bottleneck unsolved by backbone",
+  "reliable_best": "DINOv2-vitg14",
+  "dev_best": "dinov3-base-768",
+  "sealed_base": 33.5,
+  "sealed_top3": {
+    "dinov3-base-768": 32.0,
+    "DINOv2-vitg14": 36.8,
+    "dinov3-large-768": 33.5
+  },
   "metrics": {
     "DINOv2-vitb14 (base)": {
       "knn_top1": [
@@ -14,6 +20,66 @@
       "hubness_skew": 0.696,
       "tissue_sep": -0.006,
       "region_sep": 0.011
+    },
+    "dinov3-large-768": {
+      "knn_top1": [
+        30.6,
+        3.4
+      ],
+      "silhouette": -0.118,
+      "hubness_skew": 0.991,
+      "tissue_sep": -0.008,
+      "region_sep": 0.006
+    },
+    "dinov3-base-768": {
+      "knn_top1": [
+        31.9,
+        3.3
+      ],
+      "silhouette": -0.132,
+      "hubness_skew": 0.714,
+      "tissue_sep": -0.009,
+      "region_sep": 0.009
+    },
+    "dinov3-base": {
+      "knn_top1": [
+        29.2,
+        3.0
+      ],
+      "silhouette": -0.161,
+      "hubness_skew": 0.628,
+      "tissue_sep": -0.01,
+      "region_sep": 0.012
+    },
+    "dinov3-small": {
+      "knn_top1": [
+        28.4,
+        1.9
+      ],
+      "silhouette": -0.149,
+      "hubness_skew": 0.783,
+      "tissue_sep": -0.009,
+      "region_sep": 0.007
+    },
+    "dinov3-large": {
+      "knn_top1": [
+        28.8,
+        3.3
+      ],
+      "silhouette": -0.155,
+      "hubness_skew": 0.811,
+      "tissue_sep": -0.009,
+      "region_sep": 0.007
+    },
+    "DINOv2-vitg14": {
+      "knn_top1": [
+        31.3,
+        2.9
+      ],
+      "silhouette": -0.106,
+      "hubness_skew": 0.758,
+      "tissue_sep": -0.001,
+      "region_sep": 0.005
     },
     "DINOv2-vitl14": {
       "knn_top1": [
@@ -30,6 +96,30 @@
     "DINOv2-vitb14 (base)": [
       0.0,
       0
+    ],
+    "dinov3-large-768": [
+      1.69,
+      9
+    ],
+    "dinov3-base-768": [
+      3.04,
+      9
+    ],
+    "dinov3-base": [
+      0.37,
+      6
+    ],
+    "dinov3-small": [
+      -0.46,
+      4
+    ],
+    "dinov3-large": [
+      -0.08,
+      5
+    ],
+    "DINOv2-vitg14": [
+      2.43,
+      9
     ],
     "DINOv2-vitl14": [
       0.09,
