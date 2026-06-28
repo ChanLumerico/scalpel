@@ -1,5 +1,31 @@
 # SCALPEL — Detailed Research Log
 
+## ⭐ BEST CONFIGURATION (current, leak-safe — as of exp 057)
+
+```
+frozen DINOv2-vitb14 @518 px
+  → pin GaussianPool σ40
+  → embedding = [ global σ40 ⊕ high-res L256 crop around q ]      (exp 045)
+  → exemplar 1-NN (per-class max cosine)
+  → CSLS re-ranking, k=5  (hubness correction)                    (exp 051)
+```
+
+| metric | value |
+|---|---|
+| **Sealed-test top1 (502-way, leak-safe)** | **38.3** |
+| dev 10-seed CV top1 | 34.1 ± 3.x |
+| Selective top1 @ 30–40% coverage (abstention) | ~52% |
+| chance (1/502) | 0.2% → **~190× chance** |
+
+**Stacking ladder (sealed test):** vitb14 global 33.5 → **+L256 36.1** (Δ+2.6, exp 045) →
+**+CSLS 38.3** (Δ+2.2, exp 051). Only these two model-side levers stack leak-safely.
+**Separate forward lever = data scale** (exp 041: +8.9 top1 / +10.1 coverage, unsaturated).
+**Rejected** (negative/redundant): tissue-gate (046), relational (047), LoRA/SupCon-head (049/050),
+multi-layer fusion (053), embedding post-proc (052), k-reciprocal (054), TTA (055), bigger/newer
+backbone — DINOv2-vitg14 & DINOv3 (056/057, redundant with L256+CSLS or a sealed-test mirage).
+
+---
+
 This is the project's running research journal. Every experiment is recorded with
 **When / Why (motivation & hypothesis) / What & How (method & setup) / Where (data
 & conditions) / Result / Conclusion (what it led to) / Reproduce (script)**.
@@ -1205,3 +1231,17 @@ runs in parallel, awaiting the pilot.
   validated techniques already capture what a bigger/newer backbone would add; backbone change *substitutes*
   for the techniques rather than *adding* to them.
 - **Reproduce:** `scripts/backbone_stack.py`.
+
+### 058 — XAI poster: 16-panel visual dissection of the best config
+- **When:** 2026-06-28 (autonomous). **Why:** deeply visualise the adopted config (vitb14+σ40+global⊕L256
+  +exemplar-1NN+CSLS) from many angles. **What:** a 4×4 poster — R1 representation geometry (t-SNE by
+  region/tissue, tissue KDE overlap, class-centroid cosine heatmap), R2 pin mechanism (σ40 footprint,
+  q-patch self-similarity saliency, global-vs-L256, per-tissue L256 gain), R3 retrieval (correct/wrong
+  exemplar montages, hubness histogram skew=1.92, CSLS rank-shift of truth), R4 error/operating (confusion
+  graph, per-tissue top1, risk-coverage, rank-of-truth). **Result/insight:** visually confirms the program's
+  findings — t-SNE/KDE show tissue entanglement (artery∩vein∩nerve same subspace) under clean region
+  clustering; per-tissue panel shows L256 helps artery/nerve/muscle but not vein/bone; vein is hardest
+  (DX3); hubness skew 1.92 explains why CSLS helps; **rank-of-truth shows ~most misses have truth ranked
+  >5 (only ~15% of misses are top-3-rescuable)** — errors are genuinely hard, not near-misses, bounding
+  readout/tie-break gains. **Output:** `experiments/058-xai-poster/poster.private.png` (cadaver imagery →
+  gitignored §3); script + metrics committable. **Reproduce:** `scripts/xai_poster.py`.

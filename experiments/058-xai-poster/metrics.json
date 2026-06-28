@@ -1,0 +1,16 @@
+{
+  "title": "XAI 16-panel poster of best config",
+  "devcv_top1": 34.1,
+  "n_eval": 2290,
+  "csls_moves_truth_up_pct": 33.8,
+  "rescuable_top3_pct": 14.8,
+  "per_tissue_top1": {
+    "bone": 18.4,
+    "vein": 24.1,
+    "nerve": 30.8,
+    "other": 30.8,
+    "artery": 37.3,
+    "muscle": 43.5
+  },
+  "note": "poster.private.png contains cadaver imagery -> gitignored per CLAUDE.md §3"
+}
