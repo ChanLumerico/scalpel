@@ -20,6 +20,8 @@ import cv2  # noqa: E402
 import matplotlib  # noqa: E402
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
+import matplotlib.lines  # noqa: E402,F401
+import matplotlib.patches  # noqa: E402,F401
 import numpy as np  # noqa: E402
 import torch  # noqa: E402
 import torch.nn.functional as F  # noqa: E402
@@ -69,13 +71,21 @@ def classmax(S, Y, tr, cov, labs, li):
     return sc
 
 
-def overlay(ax, img_rgb, heat, title, q=None):
+def overlay(ax, img_rgb, heat, title, q=None, cbar_label="similarity"):
     ax.imshow(img_rgb)
     h = cv2.resize(heat.astype(np.float32), (img_rgb.shape[1], img_rgb.shape[0]))
-    ax.imshow(h, cmap="jet", alpha=0.45)
+    im = ax.imshow(h, cmap="jet", alpha=0.45)
     if q is not None:
-        ax.plot(q[0], q[1], "o", mfc="none", mec="white", mew=2, ms=14)
-    ax.set_title(title, fontsize=11); ax.axis("off")
+        ax.plot(q[0], q[1], "o", mfc="none", mec="white", mew=2.5, ms=18, label="pin q")
+        ax.legend(loc="lower right", fontsize=9, framealpha=0.6)
+    cb = ax.figure.colorbar(im, ax=ax, fraction=0.046, pad=0.02)
+    cb.set_label(cbar_label, fontsize=8); cb.ax.tick_params(labelsize=7)
+    ax.set_title(title, fontsize=12.5); ax.axis("off")
+
+
+def addgrid(ax, axis="both"):
+    ax.set_axisbelow(True)
+    ax.grid(True, axis=axis, alpha=0.25, linestyle="--", linewidth=0.6)
 
 
 def main():
@@ -173,26 +183,31 @@ def main():
         return [tr[j] for j in np.argsort(-sims)[:k]]
 
     # ================= build 4x4 =================
-    fig, A = plt.subplots(4, 4, figsize=(26, 26))
+    fig, A = plt.subplots(4, 4, figsize=(30, 30))
     fig.suptitle(f"SCALPEL — XAI dissection of the best config (vitb14 + σ40 + global⊕L256 + exemplar-1NN + CSLS)  |  "
-                 f"dev-CV top1 {acc:.1f}%  ·  sealed 38.3  ·  502-way", fontsize=17, y=0.995)
+                 f"dev-CV top1 {acc:.1f}%  ·  sealed 38.3  ·  502-way", fontsize=20, y=0.996, fontweight="bold")
 
     # P1 t-SNE by region
     ax = A[0, 0]
     topreg = [r for r, _ in collections.Counter(dr).most_common(8)]
     for r in topreg:
         m = dr == r; ax.scatter(XY[m, 0], XY[m, 1], s=8, label=r[:14], alpha=0.7, edgecolors="#222", linewidths=0.3)
-    ax.legend(fontsize=6, markerscale=1.5, ncol=2); ax.set_title("1. DINO-space t-SNE — colored by REGION\n(organizes by region)", fontsize=11); ax.set_xticks([]); ax.set_yticks([])
+    ax.legend(fontsize=8, markerscale=1.8, ncol=2, title="region", title_fontsize=8, loc="best", framealpha=0.7)
+    ax.set_title("1. DINO-space t-SNE — colored by REGION\n(organizes by region)", fontsize=12.5)
+    ax.set_xlabel("t-SNE 1", fontsize=8); ax.set_ylabel("t-SNE 2", fontsize=8); addgrid(ax); ax.tick_params(labelsize=6)
 
     # P2 t-SNE by tissue
     ax = A[0, 1]
     for t in ["other", "muscle", "nerve", "artery", "vein", "bone"]:
         m = dt == t; ax.scatter(XY[m, 0], XY[m, 1], s=8, c=TCOL[t], label=t, alpha=0.7, edgecolors="#222", linewidths=0.3)
-    ax.legend(fontsize=7, markerscale=1.5); ax.set_title("2. same t-SNE — colored by TISSUE\n(artery/vein/nerve ENTANGLED = the bottleneck)", fontsize=11); ax.set_xticks([]); ax.set_yticks([])
+    ax.legend(fontsize=9, markerscale=1.8, title="tissue", title_fontsize=9, loc="best", framealpha=0.7)
+    ax.set_title("2. same t-SNE — colored by TISSUE\n(artery/vein/nerve ENTANGLED = the bottleneck)", fontsize=12.5)
+    ax.set_xlabel("t-SNE 1", fontsize=8); ax.set_ylabel("t-SNE 2", fontsize=8); addgrid(ax); ax.tick_params(labelsize=6)
 
     # P3 KDE density artery vs vein vs nerve
     ax = A[0, 2]
     ax.scatter(XY[:, 0], XY[:, 1], s=3, c="#ddd")
+    handles = []
     for t in ["artery", "vein", "nerve"]:
         m = dt == t
         if m.sum() > 10:
@@ -200,18 +215,23 @@ def main():
                 kde = gaussian_kde(XY[m].T)
                 xx, yy = np.mgrid[XY[:, 0].min():XY[:, 0].max():80j, XY[:, 1].min():XY[:, 1].max():80j]
                 zz = kde(np.vstack([xx.ravel(), yy.ravel()])).reshape(xx.shape)
-                ax.contour(xx, yy, zz, levels=4, colors=TCOL[t], linewidths=1.4)
+                ax.contour(xx, yy, zz, levels=4, colors=TCOL[t], linewidths=1.8)
+                handles.append(matplotlib.lines.Line2D([0], [0], color=TCOL[t], lw=2.2, label=t))
             except Exception:
                 pass
-    ax.set_title("3. tissue density (KDE) — artery∩vein∩nerve\noverlap in the SAME subspace", fontsize=11); ax.set_xticks([]); ax.set_yticks([])
+    ax.legend(handles=handles, fontsize=9, title="KDE p(z|tissue)", title_fontsize=9, loc="best", framealpha=0.7)
+    ax.set_title("3. tissue density (KDE) — artery∩vein∩nerve\noverlap in the SAME subspace", fontsize=12.5)
+    ax.set_xlabel("t-SNE 1", fontsize=8); ax.set_ylabel("t-SNE 2", fontsize=8); addgrid(ax); ax.tick_params(labelsize=6)
 
     # P4 class-centroid cosine heatmap (ordered by region)
     ax = A[0, 3]
     cls = sorted(set(Y[i] for i in dc), key=lambda c: collections.Counter(reg[i] for i in dc if Y[i] == c).most_common(1)[0][0])
     cents = unit(np.stack([Z[[i for i in dc if Y[i] == c]].mean(0) for c in cls]))
     Cm = cents @ cents.T
-    im = ax.imshow(Cm, cmap="magma", vmin=0, vmax=1); ax.set_title("4. class-centroid cosine (ordered by region)\nblock structure = region dominates", fontsize=11)
-    ax.set_xticks([]); ax.set_yticks([]); fig.colorbar(im, ax=ax, fraction=0.046)
+    im = ax.imshow(Cm, cmap="magma", vmin=0, vmax=1); ax.set_title("4. class-centroid cosine (ordered by region)\nblock structure = region dominates", fontsize=12.5)
+    ax.set_xlabel("class (sorted by region)", fontsize=8); ax.set_ylabel("class (sorted by region)", fontsize=8)
+    ax.set_xticks([]); ax.set_yticks([])
+    cb4 = fig.colorbar(im, ax=ax, fraction=0.046); cb4.set_label("cosine similarity", fontsize=8); cb4.ax.tick_params(labelsize=7)
 
     # P5 GaussianPool σ40 footprint  [cadaver]
     overlay(A[1, 0], s_img, gw, "5. GaussianPool σ40 footprint at the pin\n(what the embedding averages)", s_q)
@@ -244,8 +264,9 @@ def main():
     xx = np.arange(len(tk))
     ax.bar(xx - 0.2, [pg[t] for t in tk], 0.4, label="global", color="#bbb")
     ax.bar(xx + 0.2, [pgl[t] for t in tk], 0.4, label="global+L256", color="#d62728")
-    ax.set_xticks(xx); ax.set_xticklabels(tk, fontsize=8); ax.legend(fontsize=8)
-    ax.set_title("8. per-tissue top1: global vs +L256\n(where the high-res crop pays off)", fontsize=11); ax.set_ylabel("%")
+    ax.set_xticks(xx); ax.set_xticklabels(tk, fontsize=9); ax.legend(fontsize=9, title="embedding", title_fontsize=8)
+    ax.set_title("8. per-tissue top1: global vs +L256\n(where the high-res crop pays off)", fontsize=12.5)
+    ax.set_ylabel("top1 %"); ax.set_xlabel("tissue", fontsize=9); addgrid(ax, "y")
 
     # P9 correct retrieval montage  [cadaver]
     def montage(ax, qi, title):
@@ -260,25 +281,32 @@ def main():
             ok = (k == 0) or (l == Y[q_idx])
             ax.text(k * 150 + 75, 165, ("Q: " if k == 0 else "") + l[:16], ha="center", fontsize=6.5,
                     color=("black" if k == 0 else ("#1a9850" if l == Y[q_idx] else "#d62728")))
-        ax.set_title(title, fontsize=11); ax.axis("off")
-    montage(A[2, 0], correct_q, "9. retrieval ✓ — query + 4 nearest exemplars\n(green=same class)")
-    montage(A[2, 1], wrong_q, "10. retrieval ✗ — failure mode\n(red=wrong, nearest crosses region/tissue)")
+        ax.legend(handles=[matplotlib.patches.Patch(color="#1a9850", label="same class ✓"),
+                           matplotlib.patches.Patch(color="#d62728", label="wrong class ✗")],
+                  loc="upper right", fontsize=8, framealpha=0.7, ncol=2)
+        ax.set_title(title, fontsize=12.5); ax.axis("off")
+    montage(A[2, 0], correct_q, "9. retrieval ✓ — query (left) + 4 nearest exemplars")
+    montage(A[2, 1], wrong_q, "10. retrieval ✗ — failure: nearest crosses region/tissue")
 
     # P11 hubness histogram
     ax = A[2, 2]
     from scipy.stats import skew
-    ax.hist(kocc, bins=40, color="#7b68ee", edgecolor="#333")
-    ax.axvline(kocc.mean(), color="k", ls="--", lw=1)
-    ax.set_title(f"11. gallery hubness (k=10 occurrence)\nskew={skew(kocc):.2f} → CSLS corrects hubs", fontsize=11)
-    ax.set_xlabel("# times an exemplar is a top-10 neighbor"); ax.set_ylabel("count")
+    ax.hist(kocc, bins=40, color="#7b68ee", edgecolor="#333", label="exemplars")
+    ax.axvline(kocc.mean(), color="k", ls="--", lw=1.5, label=f"mean={kocc.mean():.1f}")
+    ax.axvline(np.percentile(kocc, 99), color="crimson", ls=":", lw=1.5, label="99th pct (hubs)")
+    ax.legend(fontsize=8.5)
+    ax.set_title(f"11. gallery hubness (k=10 occurrence)\nskew={skew(kocc):.2f} → CSLS corrects hubs", fontsize=12.5)
+    ax.set_xlabel("# times an exemplar is a top-10 neighbor"); ax.set_ylabel("count"); addgrid(ax, "y")
 
     # P12 CSLS rank shift
     ax = A[2, 3]
     shift = [rp - rc for _, _, rp, rc, *_ in rec]
-    ax.hist(np.clip(shift, -8, 8), bins=np.arange(-8.5, 9.5), color="#2ca02c", edgecolor="#333")
+    ax.hist(np.clip(shift, -8, 8), bins=np.arange(-8.5, 9.5), color="#2ca02c", edgecolor="#333", label="truth rank shift")
     up = np.mean([s > 0 for s in shift]) * 100
-    ax.set_title(f"12. CSLS rank shift of the TRUTH (plain−CSLS)\n>0 = CSLS moves truth up ({up:.0f}% of pins)", fontsize=11)
-    ax.set_xlabel("rank improvement"); ax.axvline(0, color="k", lw=1)
+    ax.axvline(0, color="k", lw=1.5, label="no change")
+    ax.legend(fontsize=8.5)
+    ax.set_title(f"12. CSLS rank shift of the TRUTH (plain−CSLS)\n>0 = CSLS moves truth up ({up:.0f}% of pins)", fontsize=12.5)
+    ax.set_xlabel("rank improvement (clipped ±8)"); ax.set_ylabel("count"); addgrid(ax, "y")
 
     # P13 confusion graph
     ax = A[3, 0]
@@ -292,8 +320,12 @@ def main():
     for n, (x, y) in pos.items():
         ax.plot(x, y, "o", ms=6, color=TCOL[tissue(n)])
         ax.text(x * 1.12, y * 1.12, n[:14], fontsize=6, ha="center", va="center", rotation=np.degrees(np.arctan2(y, x)))
-    ax.set_title("13. confusion graph (top-14 pairs)\nedge=∝confusions, node color=tissue", fontsize=11)
-    ax.set_xlim(-1.4, 1.4); ax.set_ylim(-1.4, 1.4); ax.axis("off")
+    seen_t = sorted({tissue(n) for n in nodes})
+    ax.legend(handles=[matplotlib.lines.Line2D([0], [0], marker="o", ls="", mfc=TCOL[t], mec="none", ms=9, label=t)
+                       for t in seen_t], loc="upper left", fontsize=8, title="node=tissue", title_fontsize=8,
+              framealpha=0.7, ncol=2)
+    ax.set_title("13. confusion graph (top-14 pairs)\nedge width ∝ confusions, node color = tissue", fontsize=12.5)
+    ax.set_xlim(-1.5, 1.5); ax.set_ylim(-1.5, 1.5); ax.axis("off")
 
     # P14 per-tissue + per-region accuracy
     ax = A[3, 1]
@@ -303,8 +335,8 @@ def main():
     tt = sorted([t for t in byt if byt[t][0] >= 15], key=lambda t: byt[t][1] / byt[t][0])
     ax.barh(range(len(tt)), [100 * byt[t][1] / byt[t][0] for t in tt], color=[TCOL[t] for t in tt])
     ax.set_yticks(range(len(tt))); ax.set_yticklabels(tt, fontsize=8)
-    ax.axvline(acc, color="k", ls="--", lw=1, label=f"overall {acc:.0f}%"); ax.legend(fontsize=7)
-    ax.set_title("14. top1 by tissue (vein hardest — DX3)", fontsize=11); ax.set_xlabel("%")
+    ax.axvline(acc, color="k", ls="--", lw=1.5, label=f"overall {acc:.0f}%"); ax.legend(fontsize=9, loc="lower right")
+    ax.set_title("14. top1 by tissue (vein hardest — DX3)", fontsize=12.5); ax.set_xlabel("top1 %"); addgrid(ax, "x")
 
     # P15 risk-coverage
     ax = A[3, 2]
@@ -313,12 +345,13 @@ def main():
     for frac in np.linspace(0.05, 1.0, 40):
         k = max(1, int(frac * len(order))); sub = order[:k]
         covx.append(100 * frac); accy.append(100 * np.mean([s[7] for s in sub]))
-    ax.plot(covx, accy, "-", color="#1f77b4", lw=2)
-    ax.axhline(acc, color="gray", ls=":", lw=1)
+    ax.plot(covx, accy, "-", color="#1f77b4", lw=2.5, label="selective top1")
+    ax.axhline(acc, color="gray", ls=":", lw=1.5, label=f"full-coverage {acc:.0f}%")
     sel30 = np.interp(30, covx, accy)
-    ax.axvline(30, color="crimson", ls=":", lw=1)
-    ax.set_title(f"15. risk–coverage (abstention, dev-CV)\nconfident 30% → {sel30:.0f}% selective top1 (sealed op. pt. ~52%)", fontsize=11)
-    ax.set_xlabel("coverage %"); ax.set_ylabel("selective top1 %"); ax.grid(alpha=0.3)
+    ax.axvline(30, color="crimson", ls=":", lw=1.5, label=f"30% cov → {sel30:.0f}%")
+    ax.legend(fontsize=9, loc="upper right")
+    ax.set_title("15. risk–coverage (abstention, dev-CV)\n(sealed operating point ~52% @30–40%)", fontsize=12.5)
+    ax.set_xlabel("coverage %"); ax.set_ylabel("selective top1 %"); addgrid(ax)
 
     # P16 rank-of-truth distribution
     ax = A[3, 3]
@@ -327,13 +360,16 @@ def main():
     cols = ["#1a9850", "#91cf60", "#d9ef8b", "#fee08b", "#fc8d59", "#d73027"]
     ax.bar(["1✓", "2", "3", "4", "5", ">5"], bars, color=cols, edgecolor="#333")
     resc = 100 * sum(rk.get(i, 0) for i in [2, 3]) / max(1, sum(bars) - rk.get(1, 0))
-    ax.set_title(f"16. rank of the TRUTH (CSLS)\nof misses, {resc:.0f}% have truth in top-3 (rescuable)", fontsize=11)
-    ax.set_ylabel("count")
+    ax.legend(handles=[matplotlib.patches.Patch(color="#1a9850", label="correct (rank 1)"),
+                       matplotlib.patches.Patch(color="#d9ef8b", label="rescuable (rank 2–3)"),
+                       matplotlib.patches.Patch(color="#d73027", label="hard (rank >5)")], fontsize=8, framealpha=0.7)
+    ax.set_title(f"16. rank of the TRUTH (CSLS)\nof misses, {resc:.0f}% have truth in top-3 (rescuable)", fontsize=12.5)
+    ax.set_ylabel("count"); ax.set_xlabel("rank of true label"); addgrid(ax, "y")
 
     fig.tight_layout(rect=[0, 0, 1, 0.985])
     out = Path("experiments/058-xai-poster"); out.mkdir(parents=True, exist_ok=True)
     p = out / "poster.private.png"
-    fig.savefig(p, dpi=105); plt.close(fig)
+    fig.savefig(p, dpi=200, bbox_inches="tight", facecolor="white"); plt.close(fig)
     (out / "metrics.json").write_text(json.dumps({
         "title": "XAI 16-panel poster of best config", "devcv_top1": round(float(acc), 1),
         "n_eval": len(rec), "csls_moves_truth_up_pct": round(float(up), 1),
