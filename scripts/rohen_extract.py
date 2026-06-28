@@ -63,7 +63,7 @@ def ocr_margins(gray, W):
     return out
 
 
-def trace(mask, mx, my, side, W, band=6, maxgap=14):
+def trace(mask, mx, my, side, W, band=5, maxgap=6):
     """March inward from a margin number along the leader line (dual-polarity mask handles black↔white
     flips); stop at the tissue endpoint. Reject if the line strays too far vertically (jumped to a crosser)."""
     H, Wm = mask.shape
@@ -108,9 +108,8 @@ def process(pg, reader):
     _, mt = cv2.threshold(th, 12, 255, cv2.THRESH_BINARY)
     m0 = cv2.bitwise_or(mb, mt)
     # keep only horizontally-long (straight leader lines), bridge small gaps at contrast flips
-    mask = cv2.morphologyEx(m0, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_RECT, (9, 1)))
+    mask = cv2.morphologyEx(m0, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_RECT, (5, 1)))
     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (41, 1)))
-    mask = cv2.dilate(mask, cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3)))
     nums = ocr_margins(gray, W)
     cands = []
     seen = set()
