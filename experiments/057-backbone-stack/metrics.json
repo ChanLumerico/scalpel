@@ -1,0 +1,70 @@
+{
+  "title": "M-bb1: vitg14 위 L256·CSLS 적층",
+  "date": "2026-06-28",
+  "headline": "vitg14+L256+CSLS 봉인 39.8 vs vitb14+L256+CSLS 38.3 (🟡미초과·중복) | dev Δ-0.05(4/10)",
+  "adopt": false,
+  "sealed_vitb14_stack": 38.3,
+  "sealed_vitg14_stack": 39.8,
+  "devcv": {
+    "vitb14 G+L256 (045) | plain": {
+      "top1": [
+        33.5,
+        2.9
+      ],
+      "delta_vs_best": [
+        -0.61,
+        2
+      ]
+    },
+    "vitb14 G+L256 (045) | CSLS": {
+      "top1": [
+        34.1,
+        3.1
+      ],
+      "delta_vs_best": [
+        0.0,
+        0
+      ]
+    },
+    "vitg14 G only | plain": {
+      "top1": [
+        31.3,
+        2.9
+      ],
+      "delta_vs_best": [
+        -2.79,
+        0
+      ]
+    },
+    "vitg14 G only | CSLS": {
+      "top1": [
+        30.4,
+        3.2
+      ],
+      "delta_vs_best": [
+        -3.72,
+        0
+      ]
+    },
+    "vitg14 G+L256 | plain": {
+      "top1": [
+        33.0,
+        3.6
+      ],
+      "delta_vs_best": [
+        -1.11,
+        2
+      ]
+    },
+    "vitg14 G+L256 | CSLS": {
+      "top1": [
+        34.1,
+        3.5
+      ],
+      "delta_vs_best": [
+        -0.05,
+        4
+      ]
+    }
+  }
+}

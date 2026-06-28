@@ -1186,3 +1186,22 @@ runs in parallel, awaiting the pilot.
   with L256+CSLS to beat the current best (vitb14+L256+CSLS, sealed 38.3)?
 - **Reproduce:** `scripts/backbone_sweep.py dinov3-base-768 dinov3-large-768 vitg14 vitl14` (timm bypasses
   the DINOv3 HF gate; weights cached to `data/merged_final/_bb_*.npy`).
+
+### 057 — M-bb1: stack L256+CSLS on the best backbone (DINOv2-vitg14) — gains are REDUNDANT, current best stands
+- **When:** 2026-06-28 (autonomous).
+- **Why:** 056 found vitg14 the only reliable backbone lever (minimal sealed 36.8). Does it STACK with the
+  validated technique levers (L256 045, CSLS 051) to beat the current best (vitb14+L256+CSLS, sealed 38.3)?
+- **What & How:** re-embed the L256 local crop with vitg14 too (consistent backbone), head-to-head vs the
+  vitb14 stack on the same splits; dev 10-seed + sealed.
+- **Result:** **dev-CV TIED** — vitb14+L256+CSLS 34.1 vs vitg14+L256+CSLS 34.1 (Δ−0.05, 4/10). Sealed
+  vitg14 stack 39.8 vs vitb14 stack 38.3 (+1.5, within CI). Notably CSLS *hurts* vitg14-global (31.3→30.4)
+  — vitg14 already has lower hubness, so the correction over-fires.
+- **Conclusion:** the backbone-size gain is **redundant** with L256+CSLS. vitg14 minimal beat vitb14
+  minimal by +2.43, but once both carry L256 (resolution) + CSLS (hubness), they **tie on dev-CV** — the
+  technique stack already extracts the *general-quality* improvement a bigger backbone provides (and the
+  bigger backbone makes CSLS partly redundant). Sealed shows a +1.5 vitg14 bump but dev-CV doesn't support
+  it and it's within noise. **Practical best stays vitb14 + L256 + CSLS (sealed 38.3) — 13× smaller than
+  vitg14 for statistically-equal performance.** This is *why* no backbone is a clean lever (056): the
+  validated techniques already capture what a bigger/newer backbone would add; backbone change *substitutes*
+  for the techniques rather than *adding* to them.
+- **Reproduce:** `scripts/backbone_stack.py`.
