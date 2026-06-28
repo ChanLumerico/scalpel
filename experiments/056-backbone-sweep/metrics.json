@@ -1,0 +1,39 @@
+{
+  "title": "백본 sweep (최소 세팅, 학습 0)",
+  "date": "2026-06-28",
+  "headline": "sweep ['DINOv2-vitb14 (base)', 'DINOv2-vitl14'] | best=DINOv2-vitl14 Δ0.09 | DINOv3 gated 대기",
+  "adopt": false,
+  "best": "DINOv2-vitl14",
+  "metrics": {
+    "DINOv2-vitb14 (base)": {
+      "knn_top1": [
+        28.9,
+        3.0
+      ],
+      "silhouette": -0.15,
+      "hubness_skew": 0.696,
+      "tissue_sep": -0.006,
+      "region_sep": 0.011
+    },
+    "DINOv2-vitl14": {
+      "knn_top1": [
+        29.0,
+        3.6
+      ],
+      "silhouette": -0.143,
+      "hubness_skew": 0.84,
+      "tissue_sep": -0.002,
+      "region_sep": 0.003
+    }
+  },
+  "delta_vs_base": {
+    "DINOv2-vitb14 (base)": [
+      0.0,
+      0
+    ],
+    "DINOv2-vitl14": [
+      0.09,
+      4
+    ]
+  }
+}

@@ -1154,3 +1154,24 @@ runs in parallel, awaiting the pilot.
 - **Conclusion:** the single deterministic crop embedding is already low-variance — there is nothing for
   averaging to reduce; h-flip slightly hurts (blurs laterality). TTA is not a lever here.
 - **Reproduce:** `scripts/tta_local.py`.
+
+## Phase 16 — Backbone sweep (the real untried lever: generation change), autonomous
+
+### 056 — M-bb0 backbone sweep (minimal setting) — DINOv2 size negative; DINOv3 gated (pending license)
+- **When:** 2026-06-28 (autonomous).
+- **Why:** the largest untouched lever — 9 months on one DINOv2 generation. 019 compared only sizes
+  (+1.1). The 042/044 bottleneck (tissue entanglement) is a *feature-quality* problem → swap the backbone
+  (training-free re-embed, like 045). Built a sweep harness: k-NN top1 (= our readout, the selection
+  metric) + diagnostics (silhouette, hubness skew, tissue/region centroid sep).
+- **What & How:** minimal setting (σ40 GaussianPool + exemplar 1-NN, no L256/CSLS), clean 502, 10-seed.
+  DINOv2 {vitb14 baseline, vitl14}. **DINOv3 {vitb16, vitl16} is the key candidate but HF gated=manual
+  (403) — needs license acceptance on the repo page; harness leaves a one-line slot.**
+- **Result:** DINOv2-vitl14 ≈ vitb14 — k-NN top1 **29.0 vs 28.9 (Δ+0.09, 4/10)**; diagnostics unchanged
+  (silhouette −0.14, hubness 0.84 vs 0.70, **tissue_sep −0.002 ≈ 0**, region_sep ~0). Bigger DINOv2 does
+  not separate tissue any better — same entanglement.
+- **Conclusion:** within-generation size is **not** the lever (confirms 019 on clean data with the full
+  metric suite). The real test — a *generation* change (DINOv3: fine-grained SOTA, retrieval +10.8,
+  sharp dense features) — is blocked by the HF license gate. **Action for next session: accept the DINOv3
+  license**, then the harness runs it in one line. Harness is the deliverable; DINOv2-size is a clean
+  negative.
+- **Reproduce:** `scripts/backbone_sweep.py vitl14` (add DINOv3 variants to BACKBONES after license).
