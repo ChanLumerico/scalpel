@@ -63,8 +63,9 @@ def ocr_margins(gray, W):
     return out
 
 
-def trace(mask, mx, my, side, W, band=9, maxgap=34):
-    """March inward from a margin number along the dark leader line; return the tissue endpoint q."""
+def trace(mask, mx, my, side, W, band=6, maxgap=14):
+    """March inward from a margin number along the leader line (dual-polarity mask handles black↔white
+    flips); stop at the tissue endpoint. Reject if the line strays too far vertically (jumped to a crosser)."""
     H, Wm = mask.shape
     dirx = 1 if side == "L" else -1
     x = mx + dirx * 14; y = my
@@ -74,10 +75,12 @@ def trace(mask, mx, my, side, W, band=9, maxgap=34):
         if not (0 <= x < Wm):
             break
         lo, hi = max(0, y - band), min(H, y + band + 1)
-        col = mask[lo:hi, x]
-        ys = np.where(col > 0)[0]
+        ys = np.where(mask[lo:hi, x] > 0)[0]
         if len(ys):
-            y = lo + int(np.median(ys)); last = (x, y); gap = 0
+            ny = lo + int(ys[np.argmin(np.abs(lo + ys - y))])   # nearest line px to current y (no jumping)
+            if abs(ny - my) > 0.13 * H:                          # strayed too far vertically → a crosser
+                break
+            y = ny; last = (x, y); gap = 0
         else:
             gap += 1
             if gap > maxgap:
@@ -95,11 +98,18 @@ def process(pg, reader):
     H, W = img.shape[:2]
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     legend = parse_legend(page.extract_text() or "")
-    # leader lines = THIN dark (vertical black-hat) AND horizontally LONG (open) → isolates straight
-    # horizontal leader lines from curvy tissue texture.
-    bh = cv2.morphologyEx(gray, cv2.MORPH_BLACKHAT, cv2.getStructuringElement(cv2.MORPH_RECT, (1, 9)))
-    _, m0 = cv2.threshold(bh, 12, 255, cv2.THRESH_BINARY)
-    mask = cv2.morphologyEx(m0, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (41, 1)))
+    # leader lines are drawn to stay visible: DARK on light tissue, LIGHT on dark tissue. So a thin
+    # horizontal line is one that CONTRASTS (either polarity) with its vertical neighbours. Detect BOTH
+    # dark lines (vertical black-hat) AND light lines (vertical top-hat) → follow through black↔white flips.
+    vk = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 9))
+    bh = cv2.morphologyEx(gray, cv2.MORPH_BLACKHAT, vk)      # thin DARK horizontal (black-on-light)
+    th = cv2.morphologyEx(gray, cv2.MORPH_TOPHAT, vk)        # thin LIGHT horizontal (white-on-dark)
+    _, mb = cv2.threshold(bh, 12, 255, cv2.THRESH_BINARY)
+    _, mt = cv2.threshold(th, 12, 255, cv2.THRESH_BINARY)
+    m0 = cv2.bitwise_or(mb, mt)
+    # keep only horizontally-long (straight leader lines), bridge small gaps at contrast flips
+    mask = cv2.morphologyEx(m0, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_RECT, (9, 1)))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (41, 1)))
     mask = cv2.dilate(mask, cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3)))
     nums = ocr_margins(gray, W)
     cands = []
@@ -109,8 +119,19 @@ def process(pg, reader):
             continue
         seen.add((n, side, my // 20))
         q = trace(mask, mx, my, side, W)
-        if q and W * 0.12 < q[0] < W * 0.88:        # endpoint is inside the photo, not margin
-            cands.append({"num": n, "name": legend[n], "q": [int(q[0]), int(q[1])], "side": side})
+        travel = abs(q[0] - mx) if q else 0
+        # accept only if: deep enough inside the photo, travelled inward (rejects margin-stuck),
+        # and not past mid-image (rejects cross-image jumps to the wrong side).
+        if q and W * 0.13 < q[0] < W * 0.87 and 0.08 * W < travel < 0.55 * W:
+            cands.append({"num": n, "name": legend[n], "q": [int(q[0]), int(q[1])], "side": side, "travel": travel})
+    # drop convergent endpoints: pins that bunch within 22 px are unreliable (traces lost in a dense
+    # crossing region and stopped at its near edge, not at distinct structures).
+    drop = set()
+    for i in range(len(cands)):
+        for j in range(i + 1, len(cands)):
+            if abs(cands[i]["q"][0] - cands[j]["q"][0]) < 22 and abs(cands[i]["q"][1] - cands[j]["q"][1]) < 22:
+                drop.add(i); drop.add(j)
+    cands = [{k: c[k] for k in ("num", "name", "q", "side")} for i, c in enumerate(cands) if i not in drop]
     # overlay
     vis = img.copy()
     for c in cands:
