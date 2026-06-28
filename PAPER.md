@@ -178,6 +178,9 @@ relational expert (R-GCN), and PoE fusion, none adopted as of this report (§6.4
 | 049 | M-rep1: learned reshape (SupCon head) | honest negative — every objective (tissue/class/hier) and space (head, frozen⊕head) loses to frozen global+L256: best class:frozen+head dev 31.2 (Δ−2.35, 0/10), sealed 36.1→34.2; tissue-only collapses (−27). Confirms 046 at the learning level — frozen exemplar already captures the separable signal; a contrastive head overfits/destroys region structure. Representation axis exhausted except resolution (045) |
 | 051–055 | autonomous: retrieval & embedding theory | CSLS hubness re-ranking **adopted** (small, sealed 36.1→38.3); negatives — embedding post-proc (region/identity entangled), multi-layer fusion (shallow texture = noise), k-reciprocal (breaks on few-shot long-tail), TTA (crop already low-variance) |
 | 056 | M-bb0: backbone sweep (DINOv2 vs DINOv3, minimal 1-NN) | **DINOv3 NOT a clean lever** — dinov3-base@768 wins dev-CV (31.9, +3.04) but sealed 32.0 < baseline 33.5 (resolution mirage, §1.7 caught it); benchmark gains don't transfer to frozen 1-NN on OOD cadaver (cf. 027). Only reliable lever = **DINOv2-vitg14** (size, dev +2.43 / sealed 36.8) but tissue_sep ≈0 for ALL backbones — none cracks the bottleneck. timm bypasses the DINOv3 HF gate |
+| 057 | M-bb1: stack L256+CSLS on vitg14 | gains REDUNDANT — vitb14+L256+CSLS 34.1 = vitg14+L256+CSLS 34.1 dev (TIED, Δ−0.05); sealed 38.3 vs 39.8 (within noise). Backbone-size gain vanishes once L256+CSLS stacked → backbone *substitutes* for techniques, not adds. Practical best stays vitb14+L256+CSLS (38.3), 13× smaller |
+| 058 | XAI poster (16-panel) | visual dissection of best config — confirms tissue entanglement, L256 per-tissue gain, hubness skew 1.92 (why CSLS), vein hardest, and most misses rank >5 (only ~15% top-3-rescuable) = errors are hard not near-misses |
+| 059 | M-llm0: bare Vision-LLM gate (Qwen2.5-VL-7B) | 🔴 STOP — Qwen *sees* the image (vision_gain +8 vs blind) but is a far worse discriminator than DINO: re-ranking top-10 gives 14.0 ≪ 38.3 (picks truth only 25% even when it's listed). Atlas can't fix missing visual discrimination; retrieval engine stays best |
 | 050 | M-rep1 (LoRA): backbone last-block reshape | overfits — dev-CV (LoRA on all dev, optimistic) +11.95/+11.71 (10/10) looks like a breakthrough, but the **clean sealed test** is frozen 36.1 → LoRA 30.5/24.5 (LoRA generalizes *worse*); the 17.6pp optimistic-vs-clean gap **is** the overfitting (§2). M-rep1 fully negative (head 049 + LoRA 050); a textbook validation of the sealed-test protocol §1.7 |
 | 051 | training-free retrieval re-ranking | **CSLS k=5 adopted** (hubness correction) — dev-CV 33.5→34.1 (Δ+0.61, 7/10), sealed 36.1→38.3; AQE −2.3/−3.5 (query expansion adds wrong-class neighbours), local-scaling +0.4. Second leak-safe lever after resolution, though small (CI overlaps). New best = global+L256 + CSLS readout |
 
@@ -398,7 +401,7 @@ ultimate goal (real deployment):
 - Every experiment is logged under `experiments/NNN-*/` with a report, figures, and `metrics.json`.
   Figures containing cadaver imagery are saved as `*.private.png` and git-ignored.
 
-*Document version: `main`. Through exp 050. Four axes exhausted on the fixed 953 (model
+*Document version: `main`. Through exp 059. Four axes exhausted on the fixed 953 (model
 008–034, reliability 037, cross-cadaver 038, relational 040) — all converge on data-bound ceiling.
 **Acted on it (Phase 13):** harvested +462 BlueLink labeled multi-pin slides → clean leak-safe
 merged dataset (711 photos / 2230 triples / **502 core = 2.3×**). exp 041 precise re-eval delivered
